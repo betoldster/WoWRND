@@ -1,10 +1,49 @@
 # ⚔️ WoW M+ Randomizer
 
-A group tool for a 5-player World of Warcraft Mythic+ team. Randomly assigns roles (Tank, Healer, DPS), class, spec, and a dungeon for each session.
+A private group tool for World of Warcraft Mythic+ teams. Randomly assigns roles, classes, specs, and a dungeon key for each session — with a dramatic animated reveal and sound effects.
+
+## Features
+
+### 🎲 Randomize
+- Roster of up to **15 players** — toggle exactly 5 as active for each session
+- Assigns **Tank, Healer, and 3× DPS** roles randomly, respecting each player's configured classes
+- Results always display in order: **Tank → Heal → DPS → DPS → DPS**
+- Animated slot-machine reveal (~7 seconds) with synthesized click and chime sounds
+- After the reveal, each player checks which **dungeon keys** they have — duplicates raise the odds of that dungeon being picked
+- Final dungeon rolled with a cycling animation and fanfare
+
+### ⚙️ Setup
+- Add up to 15 players with custom names and class selections
+- Each player can have multiple classes configured (e.g. someone who plays both Druid and Warrior)
+- Edit or remove players at any time — changes are saved to the server instantly
+
+### 📜 History
+- Tracks every roll with timestamp, full role/class/spec assignments, and dungeon
+- Per-player **role distribution bar charts** (Tank / Heal / DPS percentages)
+- Shows last 30 rolls in the recent rolls list
+- **Reset History** button at the top of the view
+
+### 🔊 Sound
+- All sounds synthesized via the Web Audio API — no audio files
+- Mute toggle in the header, persisted for the session
+
+---
+
+## Stack
+
+| Layer | Technology |
+|---|---|
+| Frontend | Vanilla JS + HTML + CSS, single file, no build step |
+| Backend | Netlify Function (Node.js) |
+| Storage | Netlify Blobs |
+| Auth | Shared group password via `X-Group-Password` header |
+| Hosting | Netlify (free tier) |
+
+---
 
 ## Quick Start (Local Dev)
 
-1. **Install the Netlify CLI** (if you don't have it):
+1. **Install the Netlify CLI:**
    ```bash
    npm install -g netlify-cli
    ```
@@ -14,7 +53,7 @@ A group tool for a 5-player World of Warcraft Mythic+ team. Randomly assigns rol
    npm install
    ```
 
-3. **Create a local `.env` file:**
+3. **Create a `.env` file at the repo root:**
    ```
    GROUP_PASSWORD=your_dev_password
    ```
@@ -23,13 +62,15 @@ A group tool for a 5-player World of Warcraft Mythic+ team. Randomly assigns rol
    ```bash
    netlify dev
    ```
-   Open [http://localhost:8888](http://localhost:8888) in your browser and enter the password you set above.
+   Open [http://localhost:8888](http://localhost:8888), enter the password, and set up your roster.
+
+---
 
 ## Deploy to Netlify
 
-1. **Push to a GitHub or GitLab repository.**
+1. Push this repo to GitHub or GitLab.
 
-2. **In the Netlify dashboard:** New site → Import from Git → select your repo.
+2. In the **Netlify dashboard**: New site → Import from Git → select your repo.
 
 3. **Build settings:**
    - Build command: *(leave empty)*
@@ -37,28 +78,25 @@ A group tool for a 5-player World of Warcraft Mythic+ team. Randomly assigns rol
    - Functions directory: `netlify/functions` *(auto-detected)*
 
 4. **Environment variables** (Site Settings → Environment Variables):
-   - `GROUP_PASSWORD` — the shared password for your group. Pick something memorable but not trivial. **Never commit this value.**
+   - `GROUP_PASSWORD` — your group's shared password. **Never commit this value.**
 
-5. **Enable Blobs** (Site Settings → Blobs) if it isn't enabled automatically.
+5. **Enable Blobs** (Site Settings → Blobs) if not auto-enabled.
 
-6. **Trigger a deploy.** Open the site URL, enter the password, and set up your roster in the Setup tab.
+6. Trigger a deploy, open the site URL, enter the password, and start adding players in the Setup tab.
 
-## Usage
-
-1. **Setup tab** — Add up to 7 players. For each player, set their name and which classes they play.
-2. **Randomize tab** — Toggle exactly 5 active players, then hit **🎲 RANDOMIZE ROLES**. Watch the dramatic reveal, then check which dungeons each player has a key for and hit **🗝️ ROLL KEY**.
-3. **History tab** — View role distribution stats per player and a log of past rolls.
+---
 
 ## Maintenance
 
-- **New M+ season:** Update the `SEASON_DUNGEONS` array in `index.html` with the new season's dungeons.
+- **New M+ season:** Update `SEASON_DUNGEONS` in `index.html` with the new dungeon list.
 - **Class/spec changes:** Update the `CLASSES` constant in `index.html` if Blizzard reworks specs.
+
+---
 
 ## Limitations
 
-- **Single shared password** — anyone who knows the password can edit or delete all data. This is intentional for a private friend-group tool.
-- **No per-user attribution** — you can't see who made a specific change.
+- **Single shared password** — anyone with the password can edit or delete all data. Intentional for a private friend-group tool.
+- **No per-user attribution** — you can't tell who made a specific change.
 - **No real-time sync** — group members need to refresh to see the latest roll.
-- **No backup UI** — you can manually export the current state by hitting `GET /.netlify/functions/state` with the `X-Group-Password` header.
-- **No rate limiting in code** — Netlify's free-tier function limits are sufficient for private group use.
-- **Password in sessionStorage** — stored in plaintext, cleared when the browser tab is closed.
+- **No backup UI** — export state manually with a `GET /.netlify/functions/state` request using the `X-Group-Password` header.
+- **Password in sessionStorage** — plaintext, cleared when the tab is closed.
