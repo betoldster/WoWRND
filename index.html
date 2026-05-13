@@ -1158,7 +1158,8 @@ function handleRandomize() {
     return;
   }
 
-  rAssignments = assignments;
+  const roleOrder = { TANK: 0, HEAL: 1, DPS: 2 };
+  rAssignments = assignments.sort((a, b) => roleOrder[a.role] - roleOrder[b.role]);
   rPhase       = 'revealing';
   render();
   runRevealAnimation(assignments);
