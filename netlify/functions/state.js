@@ -5,7 +5,7 @@ const crypto = require('crypto');
 
 const STORE_NAME = 'wow-mplus';
 const BLOB_KEY = 'state';
-const MAX_PLAYERS = 7;
+const MAX_PLAYERS = 15;
 const MAX_HISTORY = 200;
 const MAX_NAME_LEN = 30;
 const DEFAULT_STATE = { version: 1, players: [], history: [] };

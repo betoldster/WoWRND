@@ -463,13 +463,14 @@ footer {
 #pw-submit:hover { box-shadow: 0 0 20px rgba(255,209,0,0.3); }
 
 /* ---- LARGE SCREENS ---- */
+/* target html so rem units scale throughout */
 @media (min-width: 1440px) {
-  body { font-size: 18px; }
-  .view-content { max-width: 1400px; }
+  html { font-size: 20px; }
+  .view-content { max-width: 1500px; }
 }
 @media (min-width: 1920px) {
-  body { font-size: 20px; }
-  .view-content { max-width: 1700px; }
+  html { font-size: 23px; }
+  .view-content { max-width: 1800px; }
 }
 
 /* ---- RESPONSIVE ---- */
@@ -964,10 +965,10 @@ function renderSetup() {
   }
   h += '</div>';
 
-  if (players.length < 7) {
+  if (players.length < 15) {
     h += addPlayerFormHtml();
   } else {
-    h += '<p class="notice">Roster full (7 players maximum).</p>';
+    h += '<p class="notice">Roster full (15 players maximum).</p>';
   }
 
   h += '</div>';
