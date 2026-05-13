@@ -7,6 +7,10 @@
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+/* explicit display values override the browser's [hidden] default — force it back */
+#pw-overlay[hidden],
+#app[hidden] { display: none !important; }
+
 :root {
   --bg:        #0a0a0f;
   --bg2:       #12121a;
