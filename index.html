@@ -1,0 +1,1450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>⚔️ WoW M+ Randomizer</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:        #0a0a0f;
+  --bg2:       #12121a;
+  --bg3:       #1a1a26;
+  --border:    #252530;
+  --gold:      #ffd100;
+  --gold-dim:  #a08a00;
+  --text:      #e0e0e0;
+  --text-dim:  #888;
+  --tank:      #2a4d8a;
+  --heal:      #2a8a4d;
+  --dps:       #8a2a2a;
+  --danger:    #8a2a2a;
+  --success:   #2a8a4d;
+}
+
+body {
+  background: var(--bg);
+  background-image: radial-gradient(ellipse at top center, #18102e 0%, var(--bg) 65%);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  min-height: 100vh;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+/* ---- PASSWORD OVERLAY ---- */
+#pw-overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--bg);
+  background-image: radial-gradient(ellipse at top center, #18102e 0%, var(--bg) 65%);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.pw-box {
+  background: var(--bg2);
+  border: 1px solid var(--gold-dim);
+  border-radius: 10px;
+  padding: 2.5rem 2rem;
+  max-width: 380px;
+  width: 92%;
+  text-align: center;
+  box-shadow: 0 0 40px rgba(255,209,0,0.08);
+}
+.pw-box h2 { color: var(--gold); font-size: 1.5rem; margin-bottom: 0.5rem; }
+.pw-box p  { color: var(--text-dim); margin-bottom: 1.5rem; }
+#pw-form   { display: flex; flex-direction: column; gap: 0.75rem; }
+#pw-input  {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  font-size: 1rem;
+  padding: 0.7rem 1rem;
+  width: 100%;
+}
+#pw-input:focus { outline: none; border-color: var(--gold-dim); }
+#pw-error { color: #e07070; font-size: 0.9rem; padding: 0.5rem 0; }
+
+/* ---- APP SHELL ---- */
+#app { display: flex; flex-direction: column; min-height: 100vh; }
+
+header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem 1.5rem;
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  flex-wrap: wrap;
+}
+header h1 { color: var(--gold); font-size: 1.25rem; white-space: nowrap; }
+
+nav { display: flex; gap: 0.25rem; flex: 1; }
+.tab {
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  padding: 0.4rem 0.9rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background 0.15s, color 0.15s;
+  white-space: nowrap;
+}
+.tab:hover  { background: rgba(255,255,255,0.05); color: var(--text); }
+.tab.active { background: rgba(255,209,0,0.1); color: var(--gold); font-weight: 600; }
+
+.mute-btn {
+  margin-left: auto;
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  transition: background 0.15s;
+}
+.mute-btn:hover { background: rgba(255,255,255,0.05); }
+
+main { flex: 1; }
+footer {
+  text-align: center;
+  padding: 1rem;
+  color: var(--text-dim);
+  font-size: 0.8rem;
+  border-top: 1px solid var(--border);
+  margin-top: 2rem;
+}
+
+/* ---- SHARED LAYOUT ---- */
+.view-content { max-width: 1100px; margin: 0 auto; padding: 1.5rem 1.25rem; }
+.section { margin-bottom: 2rem; }
+.section-title    { color: var(--gold); font-size: 1.1rem; font-weight: 600; margin-bottom: 1rem; }
+.subsection-title { color: var(--text); font-size: 0.95rem; font-weight: 600; margin-bottom: 0.75rem; }
+.center { text-align: center; }
+
+.notice {
+  color: var(--text-dim);
+  font-style: italic;
+  margin: 0.5rem 0;
+  font-size: 0.9rem;
+}
+.link-btn {
+  background: none;
+  border: none;
+  color: var(--gold);
+  cursor: pointer;
+  text-decoration: underline;
+  font-size: inherit;
+  padding: 0;
+}
+.form-error {
+  color: #e07070;
+  font-size: 0.85rem;
+  margin-top: 0.4rem;
+}
+.inline-error {
+  background: rgba(138,42,42,0.2);
+  border: 1px solid #8a2a2a;
+  border-radius: 6px;
+  color: #e07070;
+  padding: 0.7rem 1rem;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+}
+
+/* ---- BUTTONS ---- */
+.big-btn {
+  display: inline-block;
+  background: linear-gradient(135deg, #ffd100 0%, #c8a200 100%);
+  color: #0a0a0f;
+  border: none;
+  padding: 0.9rem 2.5rem;
+  font-size: 1.1rem;
+  font-weight: 700;
+  border-radius: 8px;
+  cursor: pointer;
+  box-shadow: 0 0 20px rgba(255,209,0,0.25), 0 2px 8px rgba(0,0,0,0.4);
+  transition: box-shadow 0.15s, transform 0.15s, opacity 0.15s;
+  letter-spacing: 0.02em;
+}
+.big-btn:hover:not(:disabled) {
+  box-shadow: 0 0 35px rgba(255,209,0,0.45), 0 4px 12px rgba(0,0,0,0.4);
+  transform: translateY(-2px);
+}
+.big-btn:disabled { opacity: 0.35; cursor: not-allowed; box-shadow: none; transform: none; }
+.big-btn.secondary {
+  background: var(--bg3);
+  color: var(--gold);
+  border: 1px solid var(--gold-dim);
+  box-shadow: none;
+}
+.big-btn.secondary:hover:not(:disabled) {
+  background: rgba(255,209,0,0.08);
+  box-shadow: none;
+}
+
+.btn {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 0.45rem 0.9rem;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+}
+.btn:hover         { border-color: var(--gold-dim); color: var(--gold); }
+.btn.danger        { border-color: #5a2020; color: #d07070; }
+.btn.danger:hover  { background: rgba(138,42,42,0.25); border-color: #8a2a2a; color: #e09090; }
+.btn.small         { padding: 0.3rem 0.65rem; font-size: 0.8rem; }
+
+/* ---- ROLE BADGE ---- */
+.role-badge {
+  display: inline-block;
+  padding: 0.15rem 0.55rem;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #fff;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  min-width: 46px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+/* ---- CLASS CHIP ---- */
+.class-chip {
+  font-size: 0.75rem;
+  padding: 0.1rem 0.45rem;
+  background: rgba(255,255,255,0.05);
+  border-radius: 3px;
+  white-space: nowrap;
+}
+
+/* ---- PLAYER TOGGLES (RANDOMIZE) ---- */
+.player-toggles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0.75rem 0;
+}
+.player-toggle {
+  background: var(--bg2);
+  border: 2px solid var(--border);
+  border-radius: 8px;
+  padding: 0.65rem 1rem;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
+  text-align: left;
+  min-width: 130px;
+}
+.player-toggle:hover { border-color: #444; }
+.player-toggle.active {
+  border-color: var(--gold);
+  background: rgba(255,209,0,0.06);
+  box-shadow: 0 0 10px rgba(255,209,0,0.1);
+}
+.toggle-name   { display: block; font-weight: 600; margin-bottom: 0.3rem; }
+.toggle-classes { display: flex; flex-wrap: wrap; gap: 3px; }
+.active-count  { color: var(--text-dim); font-size: 0.85rem; margin-top: 0.4rem; }
+
+/* ---- SLOTS (REVEAL) ---- */
+.slots { display: flex; flex-direction: column; gap: 0.6rem; margin: 1rem 0; }
+.slot {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.9rem 1.1rem;
+  transition: border-color 0.3s;
+}
+.slot.settled { border-color: #333; }
+.slot-player {
+  font-size: 1.15rem;
+  font-weight: 700;
+  min-width: 100px;
+  transition: color 0.3s;
+}
+.slot-player.rolling { color: var(--text-dim) !important; }
+.slot-detail { font-size: 0.85rem; color: var(--text-dim); }
+
+@keyframes slot-settle {
+  0%   { transform: scale(1.06); }
+  60%  { transform: scale(0.97); }
+  100% { transform: scale(1); }
+}
+.slot-player.settled { animation: slot-settle 0.25s ease; }
+
+/* ---- KEY SELECTION ---- */
+.key-section-desc { color: var(--text-dim); font-size: 0.85rem; margin-bottom: 1rem; }
+.key-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+.key-player { background: var(--bg2); border: 1px solid var(--border); border-radius: 8px; padding: 0.9rem 1rem; }
+.key-player-name { font-weight: 700; font-size: 0.95rem; margin-bottom: 0.6rem; }
+.key-checkboxes { display: flex; flex-direction: column; gap: 0.2rem; }
+.key-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  font-size: 0.82rem;
+  color: var(--text-dim);
+  padding: 0.15rem 0;
+  transition: color 0.1s;
+}
+.key-label:hover { color: var(--text); }
+.key-label input[type="checkbox"] { accent-color: var(--gold); flex-shrink: 0; }
+.key-label input:checked + span { color: var(--text); }
+
+/* ---- DUNGEON REVEAL ---- */
+.dungeon-reveal { margin: 1.5rem 0 1.25rem; }
+.dungeon-label  { color: var(--text-dim); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 0.4rem; }
+.dungeon-name   {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--gold);
+  text-shadow: 0 0 12px rgba(255,209,0,0.3);
+  min-height: 2.5rem;
+  transition: text-shadow 0.3s;
+}
+@keyframes glow-pulse {
+  0%   { text-shadow: 0 0 5px rgba(255,209,0,0.2); }
+  40%  { text-shadow: 0 0 50px rgba(255,209,0,1), 0 0 100px rgba(255,209,0,0.4); }
+  100% { text-shadow: 0 0 20px rgba(255,209,0,0.5); }
+}
+.dungeon-name.glow { animation: glow-pulse 0.8s ease forwards; }
+
+/* ---- SETUP VIEW ---- */
+.setup-list { margin-bottom: 1.5rem; }
+.player-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.85rem 1rem;
+  margin-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+.player-card.editing { align-items: flex-start; flex-direction: column; }
+.card-name    { font-weight: 600; min-width: 90px; }
+.card-classes { display: flex; flex-wrap: wrap; gap: 4px; flex: 1; }
+.card-actions { display: flex; gap: 0.4rem; margin-left: auto; flex-shrink: 0; }
+
+.add-player-form {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1.25rem;
+  margin-top: 1rem;
+}
+.add-player-form h3 { color: var(--gold); font-size: 0.95rem; margin-bottom: 1rem; }
+.form-group { margin-bottom: 0.9rem; }
+.form-group label { display: block; font-size: 0.82rem; color: var(--text-dim); margin-bottom: 0.4rem; text-transform: uppercase; letter-spacing: 0.05em; }
+.form-group input[type="text"] {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  color: var(--text);
+  font-size: 0.95rem;
+  padding: 0.55rem 0.8rem;
+  width: 100%;
+  max-width: 300px;
+}
+.form-group input[type="text"]:focus { outline: none; border-color: var(--gold-dim); }
+.class-checkboxes {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(145px, 1fr));
+  gap: 0.3rem;
+}
+.class-check-label {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  cursor: pointer;
+  font-size: 0.85rem;
+  padding: 0.2rem 0.3rem;
+  border-radius: 4px;
+  transition: background 0.1s;
+}
+.class-check-label:hover { background: rgba(255,255,255,0.04); }
+.class-check-label input[type="checkbox"] { accent-color: var(--gold); flex-shrink: 0; }
+
+.save-indicator {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  background: #1a4d2a;
+  border: 1px solid #2a8a4d;
+  color: #80e0a0;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  animation: fade-in-out 2s ease forwards;
+  z-index: 50;
+}
+@keyframes fade-in-out {
+  0%   { opacity: 0; transform: translateY(6px); }
+  15%  { opacity: 1; transform: translateY(0); }
+  75%  { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* ---- HISTORY VIEW ---- */
+.history-total { color: var(--text-dim); font-size: 0.85rem; margin-bottom: 1.25rem; }
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+.stat-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 8px; padding: 0.9rem 1rem; }
+.stat-name  { font-weight: 600; margin-bottom: 0.6rem; }
+.stat-bar-row   { display: flex; align-items: center; gap: 0.5rem; margin: 0.35rem 0; }
+.stat-bar-track { flex: 1; background: var(--bg3); border-radius: 3px; height: 10px; overflow: hidden; }
+.stat-bar-fill  { height: 100%; border-radius: 3px; transition: width 0.5s ease; }
+.stat-count     { font-size: 0.75rem; color: var(--text-dim); min-width: 70px; }
+
+.roll-list  { display: flex; flex-direction: column; gap: 0.75rem; margin-bottom: 1.25rem; }
+.roll-entry {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.9rem 1rem;
+}
+.roll-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.6rem;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+.roll-date    { color: var(--text-dim); font-size: 0.8rem; }
+.roll-dungeon { color: var(--gold); font-weight: 600; font-size: 0.9rem; }
+.roll-assignments { display: flex; flex-direction: column; gap: 0.3rem; }
+.roll-assign  { display: flex; align-items: center; gap: 0.6rem; font-size: 0.85rem; }
+.roll-spec    { color: var(--text-dim); }
+
+/* ---- SUBMIT BUTTON ---- */
+#pw-submit {
+  background: linear-gradient(135deg, #ffd100, #c8a200);
+  color: #0a0a0f;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 700;
+  border-radius: 6px;
+  cursor: pointer;
+  width: 100%;
+  transition: box-shadow 0.15s;
+}
+#pw-submit:hover { box-shadow: 0 0 20px rgba(255,209,0,0.3); }
+
+/* ---- RESPONSIVE ---- */
+@media (max-width: 700px) {
+  header { padding: 0.6rem 1rem; gap: 0.5rem; }
+  header h1 { font-size: 1rem; }
+  .tab { padding: 0.35rem 0.6rem; font-size: 0.82rem; }
+  .view-content { padding: 1rem 0.9rem; }
+  .key-grid { grid-template-columns: 1fr 1fr; }
+  .slot { flex-wrap: wrap; }
+  .dungeon-name { font-size: 1.5rem; }
+  .big-btn { padding: 0.75rem 1.5rem; font-size: 1rem; }
+  .stats-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 430px) {
+  .key-grid { grid-template-columns: 1fr; }
+  .player-toggle { width: 100%; }
+}
+</style>
+</head>
+<body>
+
+<!-- Password overlay -->
+<div id="pw-overlay">
+  <div class="pw-box">
+    <h2>⚔️ WoW M+ Randomizer</h2>
+    <p>Enter the group password to continue</p>
+    <div id="pw-error" hidden></div>
+    <form id="pw-form">
+      <input type="password" id="pw-input" placeholder="Password" autocomplete="current-password" />
+      <button type="submit" id="pw-submit">Enter</button>
+    </form>
+  </div>
+</div>
+
+<!-- Main app -->
+<div id="app" hidden>
+  <header>
+    <h1>⚔️ WoW M+ Randomizer</h1>
+    <nav id="nav">
+      <button class="tab active" data-view="randomize">🎲 Randomize</button>
+      <button class="tab"        data-view="setup">⚙️ Setup</button>
+      <button class="tab"        data-view="history">📜 History</button>
+    </nav>
+    <button class="mute-btn" id="mute-btn" title="Toggle sound">🔊</button>
+  </header>
+
+  <main id="main"></main>
+
+  <footer>WoW M+ Randomizer &middot; Midnight Season 1</footer>
+</div>
+
+<script>
+// ==================== CONSTANTS ====================
+
+const SEASON_DUNGEONS = [
+  "Windrunner Spire",
+  "Maisara Caverns",
+  "Magisters' Terrace",
+  "Nexus-Point Xenas",
+  "Algeth'ar Academy",
+  "Seat of the Triumvirate",
+  "Skyreach",
+  "Pit of Saron",
+];
+
+const CLASSES = {
+  'Death Knight': [
+    { spec: 'Blood',  role: 'TANK' },
+    { spec: 'Frost',  role: 'DPS'  },
+    { spec: 'Unholy', role: 'DPS'  },
+  ],
+  'Demon Hunter': [
+    { spec: 'Havoc',      role: 'DPS'  },
+    { spec: 'Vengeance',  role: 'TANK' },
+  ],
+  'Druid': [
+    { spec: 'Balance',     role: 'DPS'  },
+    { spec: 'Feral',       role: 'DPS'  },
+    { spec: 'Guardian',    role: 'TANK' },
+    { spec: 'Restoration', role: 'HEAL' },
+  ],
+  'Evoker': [
+    { spec: 'Devastation',  role: 'DPS'  },
+    { spec: 'Preservation', role: 'HEAL' },
+    { spec: 'Augmentation', role: 'DPS'  },
+  ],
+  'Hunter': [
+    { spec: 'Beast Mastery',  role: 'DPS' },
+    { spec: 'Marksmanship',   role: 'DPS' },
+    { spec: 'Survival',       role: 'DPS' },
+  ],
+  'Mage': [
+    { spec: 'Arcane', role: 'DPS' },
+    { spec: 'Fire',   role: 'DPS' },
+    { spec: 'Frost',  role: 'DPS' },
+  ],
+  'Monk': [
+    { spec: 'Brewmaster',  role: 'TANK' },
+    { spec: 'Mistweaver',  role: 'HEAL' },
+    { spec: 'Windwalker',  role: 'DPS'  },
+  ],
+  'Paladin': [
+    { spec: 'Holy',        role: 'HEAL' },
+    { spec: 'Protection',  role: 'TANK' },
+    { spec: 'Retribution', role: 'DPS'  },
+  ],
+  'Priest': [
+    { spec: 'Discipline', role: 'HEAL' },
+    { spec: 'Holy',       role: 'HEAL' },
+    { spec: 'Shadow',     role: 'DPS'  },
+  ],
+  'Rogue': [
+    { spec: 'Assassination', role: 'DPS' },
+    { spec: 'Outlaw',        role: 'DPS' },
+    { spec: 'Subtlety',      role: 'DPS' },
+  ],
+  'Shaman': [
+    { spec: 'Elemental',   role: 'DPS'  },
+    { spec: 'Enhancement', role: 'DPS'  },
+    { spec: 'Restoration', role: 'HEAL' },
+  ],
+  'Warlock': [
+    { spec: 'Affliction',  role: 'DPS' },
+    { spec: 'Demonology',  role: 'DPS' },
+    { spec: 'Destruction', role: 'DPS' },
+  ],
+  'Warrior': [
+    { spec: 'Arms',       role: 'DPS'  },
+    { spec: 'Fury',       role: 'DPS'  },
+    { spec: 'Protection', role: 'TANK' },
+  ],
+};
+
+const CLASS_COLORS = {
+  'Death Knight': '#c41e3a',
+  'Demon Hunter': '#a330c9',
+  'Druid':        '#ff7c0a',
+  'Evoker':       '#33937f',
+  'Hunter':       '#aad372',
+  'Mage':         '#3fc7eb',
+  'Monk':         '#00ff98',
+  'Paladin':      '#f48cba',
+  'Priest':       '#ffffff',
+  'Rogue':        '#fff468',
+  'Shaman':       '#0070dd',
+  'Warlock':      '#8788ee',
+  'Warrior':      '#c69b6d',
+};
+
+const ROLE_COLORS = { TANK: '#2a4d8a', HEAL: '#2a8a4d', DPS: '#8a2a2a' };
+const ROLE_LABELS = { TANK: 'Tank', HEAL: 'Heal', DPS: 'DPS' };
+
+const API_URL = '/.netlify/functions/state';
+
+// ==================== UTILITIES ====================
+
+function esc(str) {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function pick(arr) {
+  return arr[Math.floor(Math.random() * arr.length)];
+}
+
+function genId() {
+  return Math.random().toString(36).slice(2) + Date.now().toString(36);
+}
+
+function sleep(ms) {
+  return new Promise(r => setTimeout(r, ms));
+}
+
+function classColor(cls) {
+  return CLASS_COLORS[cls] || '#cccccc';
+}
+
+function roleBadge(role) {
+  const bg    = ROLE_COLORS[role]  || '#444';
+  const label = ROLE_LABELS[role] || role;
+  return `<span class="role-badge" style="background:${bg}">${esc(label)}</span>`;
+}
+
+// ==================== APP STATE ====================
+
+let appState       = { version: 1, players: [], history: [] };
+let sessionPw      = sessionStorage.getItem('wow_pw') || '';
+let activeView     = 'randomize';
+let activePlayers  = new Set();    // IDs currently toggled on
+let rPhase         = 'idle';       // idle | revealing | key-entry | done
+let rAssignments   = [];
+let rDungeon       = '';
+let rKeyPool       = [];
+let isAnimating    = false;
+let muted          = sessionStorage.getItem('wow_muted') === 'true';
+let audioCtx       = null;
+
+// ==================== API ====================
+
+async function apiRequest(method, body) {
+  const opts = {
+    method,
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Group-Password': sessionPw,
+    },
+  };
+  if (body !== undefined) opts.body = JSON.stringify(body);
+  return fetch(API_URL, opts);
+}
+
+async function loadState() {
+  const res = await apiRequest('GET');
+  if (!res.ok) {
+    const err = Object.assign(new Error('Load failed'), { status: res.status });
+    throw err;
+  }
+  appState = await res.json();
+}
+
+async function saveState() {
+  const res = await apiRequest('PUT', appState);
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data.error || `Save failed (${res.status})`);
+  }
+  appState = await res.json();
+}
+
+// ==================== AUDIO ====================
+
+function getCtx() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+  return audioCtx;
+}
+
+function playClick() {
+  if (muted) return;
+  try {
+    const ctx  = getCtx();
+    const osc  = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.type = 'square';
+    osc.frequency.value = 800 + Math.random() * 400;
+    gain.gain.setValueAtTime(0.05, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.05);
+    osc.start(); osc.stop(ctx.currentTime + 0.05);
+  } catch {}
+}
+
+function playSettle() {
+  if (muted) return;
+  try {
+    const ctx  = getCtx();
+    const osc  = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(523.25, ctx.currentTime);
+    osc.frequency.linearRampToValueAtTime(783.99, ctx.currentTime + 0.15);
+    gain.gain.setValueAtTime(0.15, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
+    osc.start(); osc.stop(ctx.currentTime + 0.3);
+  } catch {}
+}
+
+function playFanfare() {
+  if (muted) return;
+  try {
+    const ctx   = getCtx();
+    const notes = [523.25, 659.25, 783.99, 1046.5]; // C5 E5 G5 C6
+    notes.forEach((freq, i) => {
+      const osc  = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.type = 'triangle';
+      osc.frequency.value = freq;
+      const t = ctx.currentTime + i * 0.12;
+      gain.gain.setValueAtTime(0.2, t);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.12);
+      osc.start(t); osc.stop(t + 0.12);
+    });
+  } catch {}
+}
+
+// ==================== RANDOMIZE ALGORITHM ====================
+
+function computeAssignments(playerIds) {
+  const roles       = shuffle(['TANK', 'HEAL', 'DPS', 'DPS', 'DPS']);
+  const shuffledIds = shuffle([...playerIds]);
+  const assignments = [];
+  const errors      = [];
+
+  for (let i = 0; i < 5; i++) {
+    const player = appState.players.find(p => p.id === shuffledIds[i]);
+    const role   = roles[i];
+
+    const eligClasses = (player.classes || []).filter(
+      cls => CLASSES[cls] && CLASSES[cls].some(s => s.role === role)
+    );
+
+    if (eligClasses.length === 0) {
+      errors.push({ player, role });
+      continue;
+    }
+
+    const chosenClass = pick(eligClasses);
+    const chosenSpec  = pick(CLASSES[chosenClass].filter(s => s.role === role)).spec;
+
+    assignments.push({
+      playerId:   player.id,
+      playerName: player.name,
+      role,
+      class:      chosenClass,
+      spec:       chosenSpec,
+    });
+  }
+
+  return { assignments, errors };
+}
+
+// ==================== RENDER ====================
+
+function render() {
+  if (activeView === 'randomize') renderRandomize();
+  else if (activeView === 'setup')    renderSetup();
+  else if (activeView === 'history')  renderHistory();
+}
+
+function showView(view) {
+  activeView = view;
+  document.querySelectorAll('.tab').forEach(btn =>
+    btn.classList.toggle('active', btn.dataset.view === view)
+  );
+  render();
+}
+
+// ---------- RANDOMIZE VIEW ----------
+
+function renderRandomize() {
+  const main    = document.getElementById('main');
+  const players = appState.players;
+  const enough  = players.length >= 5;
+
+  let h = '<div class="view-content">';
+
+  // Section: player toggles
+  h += '<section class="section">';
+  h += '<h2 class="section-title">Active Players</h2>';
+
+  if (!enough) {
+    h += `<p class="notice">You need at least 5 players in your roster. <button class="link-btn" onclick="showView('setup')">Go to Setup →</button></p>`;
+  } else {
+    h += '<div class="player-toggles">';
+    for (const p of players) {
+      const on      = activePlayers.has(p.id);
+      const chips   = (p.classes || []).map(c =>
+        `<span class="class-chip" style="color:${classColor(c)}">${esc(c)}</span>`
+      ).join('');
+      h += `<button class="player-toggle${on ? ' active' : ''}"
+               onclick="togglePlayer('${esc(p.id)}')"
+               data-id="${esc(p.id)}">
+              <span class="toggle-name">${esc(p.name)}</span>
+              <span class="toggle-classes">${chips}</span>
+            </button>`;
+    }
+    h += '</div>';
+    h += `<div class="active-count">${activePlayers.size} / 5 active</div>`;
+  }
+  h += '</section>';
+
+  // Section: randomize button (only in idle phase)
+  if (rPhase === 'idle') {
+    const canRoll = activePlayers.size === 5;
+    h += `<section class="section center">
+            <button class="big-btn" ${canRoll ? '' : 'disabled'} onclick="handleRandomize()">🎲 RANDOMIZE ROLES</button>
+            ${enough && !canRoll ? '<p class="notice" style="margin-top:0.6rem">Select exactly 5 players to roll.</p>' : ''}
+          </section>`;
+  }
+
+  // Section: roll result slots
+  if (rPhase === 'revealing' || rPhase === 'key-entry' || rPhase === 'done') {
+    h += '<section class="section" id="slots-section"><div class="slots">';
+
+    if (rPhase === 'revealing') {
+      for (let i = 0; i < rAssignments.length; i++) {
+        const a = rAssignments[i];
+        h += `<div class="slot" id="slot-${i}">
+                ${roleBadge(a.role)}
+                <span class="slot-player rolling" id="slot-player-${i}">???</span>
+                <span class="slot-detail" id="slot-detail-${i}"></span>
+              </div>`;
+      }
+    } else {
+      for (const a of rAssignments) {
+        h += `<div class="slot settled">
+                ${roleBadge(a.role)}
+                <span class="slot-player" style="color:${classColor(a.class)}">${esc(a.playerName)}</span>
+                <span class="slot-detail">${esc(a.spec)} ${esc(a.class)}</span>
+              </div>`;
+      }
+    }
+
+    h += '</div></section>';
+  }
+
+  // Section: key selection
+  if (rPhase === 'key-entry') {
+    h += '<section class="section" id="key-section">';
+    h += '<h2 class="section-title">🗝️ Keys Available</h2>';
+    h += '<p class="key-section-desc">Check dungeons each player has a key for. Duplicates raise that dungeon\'s odds.</p>';
+    h += '<div class="key-grid">';
+    for (const a of rAssignments) {
+      h += `<div class="key-player">
+              <div class="key-player-name" style="color:${classColor(a.class)}">${esc(a.playerName)}</div>
+              <div class="key-checkboxes">`;
+      for (const d of SEASON_DUNGEONS) {
+        const cbId = `kc-${esc(a.playerId)}-${d.replace(/[^a-z0-9]/gi, '_')}`;
+        h += `<label class="key-label">
+                <input type="checkbox" class="key-cb"
+                  id="${cbId}"
+                  data-player="${esc(a.playerId)}"
+                  data-dungeon="${esc(d)}">
+                <span>${esc(d)}</span>
+              </label>`;
+      }
+      h += '</div></div>';
+    }
+    h += '</div>';
+    h += `<button class="big-btn" id="roll-key-btn" disabled onclick="handleRollKey()">🗝️ ROLL KEY</button>`;
+    h += '</section>';
+  }
+
+  // Section: final result
+  if (rPhase === 'done') {
+    h += `<section class="section center" id="final-section">
+            <div class="dungeon-reveal">
+              <div class="dungeon-label">Tonight's Dungeon</div>
+              <div class="dungeon-name" id="dungeon-name-display">${esc(rDungeon)}</div>
+            </div>
+            <button class="big-btn secondary" style="margin-top:1rem" onclick="resetRandomize()">🔄 RANDOMIZE AGAIN</button>
+          </section>`;
+  }
+
+  h += '</div>';
+  main.innerHTML = h;
+
+  // Wire key checkboxes
+  if (rPhase === 'key-entry') {
+    document.querySelectorAll('.key-cb').forEach(cb =>
+      cb.addEventListener('change', updateRollKeyBtn)
+    );
+  }
+}
+
+function updateRollKeyBtn() {
+  const btn = document.getElementById('roll-key-btn');
+  if (btn) btn.disabled = !document.querySelector('.key-cb:checked');
+}
+
+// ---------- SETUP VIEW ----------
+
+function renderSetup() {
+  const main    = document.getElementById('main');
+  const players = appState.players;
+
+  let h = '<div class="view-content">';
+  h += '<h2 class="section-title">Roster</h2>';
+
+  h += '<div class="setup-list">';
+  if (players.length === 0) {
+    h += '<p class="notice">No players yet. Add one below.</p>';
+  }
+  for (const p of players) {
+    h += playerCardHtml(p, false);
+  }
+  h += '</div>';
+
+  if (players.length < 7) {
+    h += addPlayerFormHtml();
+  } else {
+    h += '<p class="notice">Roster full (7 players maximum).</p>';
+  }
+
+  h += '</div>';
+  main.innerHTML = h;
+}
+
+function playerCardHtml(p, editing) {
+  const id = esc(p.id);
+
+  if (editing) {
+    return `<div class="player-card editing" id="player-${id}">
+      <div class="form-group">
+        <label>Name</label>
+        <input type="text" id="ename-${id}" value="${esc(p.name)}" maxlength="30" />
+      </div>
+      <div class="form-group">
+        <label>Classes</label>
+        <div class="class-checkboxes">
+          ${Object.keys(CLASSES).map(cls =>
+            `<label class="class-check-label">
+               <input type="checkbox" class="ecls-${id}" value="${esc(cls)}" ${(p.classes||[]).includes(cls)?'checked':''}>
+               <span style="color:${classColor(cls)}">${esc(cls)}</span>
+             </label>`
+          ).join('')}
+        </div>
+      </div>
+      <div class="form-error" id="eerr-${id}" hidden></div>
+      <div class="card-actions">
+        <button class="btn" onclick="handleSavePlayer('${id}')">Save</button>
+        <button class="btn" onclick="handleCancelEdit('${id}')">Cancel</button>
+      </div>
+    </div>`;
+  }
+
+  const chips = (p.classes || []).map(c =>
+    `<span class="class-chip" style="color:${classColor(c)}">${esc(c)}</span>`
+  ).join('');
+
+  return `<div class="player-card" id="player-${id}">
+    <span class="card-name">${esc(p.name)}</span>
+    <span class="card-classes">${chips}</span>
+    <div class="card-actions">
+      <button class="btn small" onclick="handleEditPlayer('${id}')">Edit</button>
+      <button class="btn small danger" onclick="handleRemovePlayer('${id}')">Remove</button>
+    </div>
+  </div>`;
+}
+
+function addPlayerFormHtml() {
+  return `<div class="add-player-form" id="add-form">
+    <h3>Add Player</h3>
+    <div class="form-group">
+      <label>Name</label>
+      <input type="text" id="new-name" maxlength="30" placeholder="Player name" />
+    </div>
+    <div class="form-group">
+      <label>Classes</label>
+      <div class="class-checkboxes">
+        ${Object.keys(CLASSES).map(cls =>
+          `<label class="class-check-label">
+             <input type="checkbox" class="new-cls" value="${esc(cls)}">
+             <span style="color:${classColor(cls)}">${esc(cls)}</span>
+           </label>`
+        ).join('')}
+      </div>
+    </div>
+    <div class="form-error" id="add-err" hidden></div>
+    <button class="btn" onclick="handleAddPlayer()">Add Player</button>
+  </div>`;
+}
+
+// ---------- HISTORY VIEW ----------
+
+function renderHistory() {
+  const main    = document.getElementById('main');
+  const history = appState.history || [];
+  const players = appState.players || [];
+
+  let h = '<div class="view-content">';
+  h += '<h2 class="section-title">History</h2>';
+  h += `<div class="history-total">Total rolls: <strong>${history.length}</strong></div>`;
+
+  // Per-player role distribution
+  if (players.length > 0 && history.length > 0) {
+    const stats = {};
+    for (const p of players) stats[p.id] = { name: p.name, TANK: 0, HEAL: 0, DPS: 0, total: 0 };
+    for (const roll of history) {
+      for (const a of (roll.assignments || [])) {
+        if (stats[a.playerId]) {
+          stats[a.playerId][a.role] = (stats[a.playerId][a.role] || 0) + 1;
+          stats[a.playerId].total++;
+        }
+      }
+    }
+
+    const activeStat = Object.values(stats).filter(s => s.total > 0);
+    if (activeStat.length > 0) {
+      h += '<section class="section">';
+      h += '<h3 class="subsection-title">Role Distribution</h3>';
+      h += '<div class="stats-grid">';
+      for (const s of activeStat) {
+        const pct = r => Math.round((r / s.total) * 100);
+        h += `<div class="stat-card">
+          <div class="stat-name">${esc(s.name)}</div>
+          <div class="stat-bar-group">
+            ${['TANK','HEAL','DPS'].map(role => `
+              <div class="stat-bar-row">
+                ${roleBadge(role)}
+                <div class="stat-bar-track">
+                  <div class="stat-bar-fill" style="width:${pct(s[role])}%;background:${ROLE_COLORS[role]}"></div>
+                </div>
+                <span class="stat-count">${s[role]} (${pct(s[role])}%)</span>
+              </div>`
+            ).join('')}
+          </div>
+        </div>`;
+      }
+      h += '</div></section>';
+    }
+  }
+
+  // Recent rolls
+  const recent = history.slice(0, 30);
+  if (recent.length > 0) {
+    h += '<section class="section">';
+    h += '<h3 class="subsection-title">Recent Rolls</h3>';
+    h += '<div class="roll-list">';
+    for (const roll of recent) {
+      const date = new Date(roll.rolledAt).toLocaleString();
+      h += `<div class="roll-entry">
+        <div class="roll-header">
+          <span class="roll-date">${esc(date)}</span>
+          <span class="roll-dungeon">${esc(roll.dungeon || '—')}</span>
+        </div>
+        <div class="roll-assignments">`;
+      for (const a of (roll.assignments || [])) {
+        h += `<div class="roll-assign">
+          ${roleBadge(a.role)}
+          <span style="color:${classColor(a.class)}">${esc(a.playerName)}</span>
+          <span class="roll-spec">${esc(a.spec)} ${esc(a.class)}</span>
+        </div>`;
+      }
+      h += '</div></div>';
+    }
+    h += '</div>';
+    h += `<button class="btn danger" onclick="handleClearHistory()">Clear History</button>`;
+    h += '</section>';
+  } else {
+    h += '<p class="notice">No rolls yet.</p>';
+  }
+
+  h += '</div>';
+  main.innerHTML = h;
+}
+
+// ==================== EVENT HANDLERS ====================
+
+// ---- Randomize ----
+
+function togglePlayer(id) {
+  if (rPhase !== 'idle') return;
+  activePlayers.has(id) ? activePlayers.delete(id) : activePlayers.add(id);
+
+  const btn = document.querySelector(`.player-toggle[data-id="${id}"]`);
+  if (btn) btn.classList.toggle('active', activePlayers.has(id));
+
+  const count = document.querySelector('.active-count');
+  if (count) count.textContent = `${activePlayers.size} / 5 active`;
+
+  const rollBtn = document.querySelector('.big-btn:not(.secondary)');
+  if (rollBtn && rollBtn.textContent.includes('RANDOMIZE')) {
+    rollBtn.disabled = activePlayers.size !== 5;
+  }
+}
+
+function handleRandomize() {
+  if (isAnimating || activePlayers.size !== 5) return;
+
+  const { assignments, errors } = computeAssignments([...activePlayers]);
+
+  if (errors.length > 0) {
+    const msg = errors.map(e => `• ${e.player.name} cannot fill ${ROLE_LABELS[e.role]}`).join('\n');
+    alert(`Role conflict:\n${msg}\n\nUpdate their classes in Setup or try again.`);
+    return;
+  }
+
+  rAssignments = assignments;
+  rPhase       = 'revealing';
+  render();
+  runRevealAnimation(assignments);
+}
+
+async function runRevealAnimation(assignments) {
+  isAnimating = true;
+  const names = appState.players.map(p => p.name);
+
+  await sleep(200);
+
+  for (let i = 0; i < assignments.length; i++) {
+    const a        = assignments[i];
+    const playerEl = document.getElementById(`slot-player-${i}`);
+    const detailEl = document.getElementById(`slot-detail-${i}`);
+    if (!playerEl) continue;
+
+    // Roll 12 cycles at 80ms each
+    for (let c = 0; c < 12; c++) {
+      playerEl.textContent = pick(names);
+      playClick();
+      await sleep(80);
+    }
+
+    // Settle
+    playerEl.textContent = a.playerName;
+    playerEl.style.color = classColor(a.class);
+    playerEl.classList.remove('rolling');
+    playerEl.classList.add('settled');
+    if (detailEl) detailEl.textContent = `${a.spec} ${a.class}`;
+    playSettle();
+    await sleep(300);
+  }
+
+  await sleep(500);
+  isAnimating = false;
+  rPhase = 'key-entry';
+  render();
+}
+
+function handleRollKey() {
+  const checked = [...document.querySelectorAll('.key-cb:checked')];
+  const pool    = checked.map(cb => cb.dataset.dungeon);
+
+  let dungeon, fromFullPool = false;
+  if (pool.length === 0) {
+    dungeon = pick(SEASON_DUNGEONS);
+    fromFullPool = true;
+  } else {
+    dungeon = pick(pool);
+  }
+
+  rDungeon  = dungeon;
+  rKeyPool  = [...new Set(pool)];
+  runDungeonReveal(dungeon, fromFullPool);
+}
+
+async function runDungeonReveal(dungeon, fromFullPool) {
+  isAnimating  = true;
+  rPhase       = 'done';
+  rDungeon     = '';
+  render();
+
+  const displayEl = document.getElementById('dungeon-name-display');
+  if (displayEl) {
+    displayEl.textContent = '???';
+    for (let c = 0; c < 8; c++) {
+      displayEl.textContent = pick(SEASON_DUNGEONS);
+      playClick();
+      await sleep(100);
+    }
+    displayEl.textContent = dungeon;
+    displayEl.classList.add('glow');
+    playFanfare();
+  }
+
+  rDungeon    = dungeon;
+  isAnimating = false;
+
+  if (fromFullPool) {
+    const finalSec = document.getElementById('final-section');
+    if (finalSec) {
+      const note = document.createElement('p');
+      note.className = 'notice';
+      note.style.marginTop = '0.5rem';
+      note.textContent = 'No keys entered — picked from full season pool';
+      finalSec.insertBefore(note, finalSec.querySelector('.big-btn'));
+    }
+  }
+
+  // Persist to history
+  const roll = {
+    id:          'roll-' + genId(),
+    rolledAt:    new Date().toISOString(),
+    assignments: rAssignments,
+    dungeon,
+    keyPool:     rKeyPool,
+  };
+  appState.history = [roll, ...(appState.history || [])].slice(0, 200);
+
+  saveState().catch(e => {
+    console.error('History save failed:', e);
+    showInlineError('⚠️ Failed to save roll to server — it won\'t appear in History.');
+  });
+}
+
+function resetRandomize() {
+  rPhase       = 'idle';
+  rAssignments = [];
+  rDungeon     = '';
+  rKeyPool     = [];
+  render();
+}
+
+// ---- Setup ----
+
+async function handleAddPlayer() {
+  const nameEl  = document.getElementById('new-name');
+  const errEl   = document.getElementById('add-err');
+  const name    = nameEl ? nameEl.value.trim() : '';
+
+  if (!name)          return setFieldErr(errEl, 'Name is required.');
+  if (name.length>30) return setFieldErr(errEl, 'Name must be 30 characters or fewer.');
+  if (appState.players.some(p => p.name.toLowerCase() === name.toLowerCase()))
+    return setFieldErr(errEl, 'A player with that name already exists.');
+
+  const classes = [...document.querySelectorAll('.new-cls:checked')].map(cb => cb.value);
+  if (classes.length === 0) return setFieldErr(errEl, 'Select at least one class.');
+
+  const newPlayer = { id: genId(), name, classes };
+  appState.players = [...appState.players, newPlayer];
+
+  try {
+    await saveState();
+    renderSetup();
+  } catch (e) {
+    appState.players = appState.players.filter(p => p.id !== newPlayer.id);
+    setFieldErr(errEl, 'Failed to save: ' + e.message);
+  }
+}
+
+function handleEditPlayer(id) {
+  const card   = document.getElementById(`player-${id}`);
+  const player = appState.players.find(p => p.id === id);
+  if (card && player) card.outerHTML = playerCardHtml(player, true);
+}
+
+function handleCancelEdit(id) {
+  const card   = document.getElementById(`player-${id}`);
+  const player = appState.players.find(p => p.id === id);
+  if (card && player) card.outerHTML = playerCardHtml(player, false);
+}
+
+async function handleSavePlayer(id) {
+  const nameEl  = document.getElementById(`ename-${id}`);
+  const errEl   = document.getElementById(`eerr-${id}`);
+  const name    = nameEl ? nameEl.value.trim() : '';
+
+  if (!name)          return setFieldErr(errEl, 'Name is required.');
+  if (name.length>30) return setFieldErr(errEl, 'Name must be 30 characters or fewer.');
+  if (appState.players.some(p => p.id !== id && p.name.toLowerCase() === name.toLowerCase()))
+    return setFieldErr(errEl, 'A player with that name already exists.');
+
+  const classes = [...document.querySelectorAll(`.ecls-${id}:checked`)].map(cb => cb.value);
+  if (classes.length === 0) return setFieldErr(errEl, 'Select at least one class.');
+
+  const old = appState.players;
+  appState.players = old.map(p => p.id === id ? { ...p, name, classes } : p);
+
+  try {
+    await saveState();
+    renderSetup();
+    showSaved();
+  } catch (e) {
+    appState.players = old;
+    setFieldErr(errEl, 'Failed to save: ' + e.message);
+  }
+}
+
+async function handleRemovePlayer(id) {
+  const player = appState.players.find(p => p.id === id);
+  if (!player || !confirm(`Remove ${player.name} from the roster?`)) return;
+
+  const old = appState.players;
+  appState.players = old.filter(p => p.id !== id);
+  activePlayers.delete(id);
+
+  try {
+    await saveState();
+    renderSetup();
+  } catch (e) {
+    appState.players = old;
+    activePlayers.add(id);
+    alert('Failed to remove player: ' + e.message);
+  }
+}
+
+// ---- History ----
+
+async function handleClearHistory() {
+  if (!confirm('Clear all roll history? This cannot be undone.')) return;
+  const old = appState.history;
+  appState.history = [];
+  try {
+    await saveState();
+    renderHistory();
+  } catch (e) {
+    appState.history = old;
+    alert('Failed to clear history: ' + e.message);
+  }
+}
+
+// ---- Helpers ----
+
+function setFieldErr(el, msg) {
+  if (!el) return;
+  el.textContent = msg;
+  el.hidden = false;
+}
+
+function showSaved() {
+  const el = document.createElement('div');
+  el.className = 'save-indicator';
+  el.textContent = '✓ Saved';
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 2200);
+}
+
+function showInlineError(msg) {
+  const main = document.getElementById('main');
+  if (!main) return;
+  const el = document.createElement('div');
+  el.className = 'inline-error';
+  el.textContent = msg;
+  main.prepend(el);
+  setTimeout(() => el.remove(), 6000);
+}
+
+// ==================== MUTE BUTTON ====================
+
+function updateMuteBtn() {
+  const btn = document.getElementById('mute-btn');
+  if (btn) btn.textContent = muted ? '🔇' : '🔊';
+}
+
+// ==================== BOOT ====================
+
+async function boot() {
+  updateMuteBtn();
+
+  document.getElementById('mute-btn').addEventListener('click', () => {
+    muted = !muted;
+    sessionStorage.setItem('wow_muted', String(muted));
+    updateMuteBtn();
+  });
+
+  document.getElementById('nav').addEventListener('click', e => {
+    const btn = e.target.closest('.tab');
+    if (btn && btn.dataset.view) showView(btn.dataset.view);
+  });
+
+  document.getElementById('pw-form').addEventListener('submit', async e => {
+    e.preventDefault();
+    const errEl = document.getElementById('pw-error');
+    errEl.hidden = true;
+    sessionPw = document.getElementById('pw-input').value;
+
+    try {
+      await loadState();
+      sessionStorage.setItem('wow_pw', sessionPw);
+      document.getElementById('pw-overlay').hidden = true;
+      document.getElementById('app').hidden = false;
+      render();
+    } catch (err) {
+      if (err.status === 401) {
+        errEl.textContent = 'Incorrect password.';
+        sessionStorage.removeItem('wow_pw');
+        sessionPw = '';
+      } else {
+        errEl.textContent = 'Connection error — check your internet and try again.';
+      }
+      errEl.hidden = false;
+    }
+  });
+
+  // Auto-login if we have a cached password
+  if (sessionPw) {
+    try {
+      await loadState();
+      document.getElementById('pw-overlay').hidden = true;
+      document.getElementById('app').hidden = false;
+      render();
+    } catch (err) {
+      sessionStorage.removeItem('wow_pw');
+      sessionPw = '';
+      if (err.status !== 401) {
+        const errEl = document.getElementById('pw-error');
+        errEl.textContent = 'Connection error — enter your password and try again.';
+        errEl.hidden = false;
+      }
+    }
+  }
+}
+
+boot();
+</script>
+</body>
+</html>
