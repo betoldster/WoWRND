@@ -1,8 +1,17 @@
 # CLAUDE.md — WoWRND
 
+## Status
+
+**v1 complete. No open tasks.**
+
+GitHub: https://github.com/betoldster/WoWRND  
+Deployed via Netlify CI on push to `main`.
+
+---
+
 ## Project Purpose
 
-WoWRND is a Mythic+ randomizer web app for a 5-person World of Warcraft group. It randomly assigns each player a class, spec, and role for a random dungeon from the current Mythic+ season pool. State (assignments, history) is persisted server-side so all group members see the same result.
+WoWRND is a Mythic+ randomizer web app for a World of Warcraft group. It randomly assigns each active player a role (Tank/Heal/DPS), class, and spec, then rolls a dungeon from the season pool. Up to 15 players can be on the roster; exactly 5 are selected per roll. State is persisted server-side so all group members see the same result.
 
 ---
 
@@ -11,12 +20,13 @@ WoWRND is a Mythic+ randomizer web app for a 5-person World of Warcraft group. I
 ```
 /
 ├── index.html                 # Entire frontend: HTML, CSS (inline), JS (inline)
-├── netlify.toml               # Netlify config, redirect rules, security headers (CSP)
+├── netlify.toml               # Netlify config + CSP/security headers
 ├── netlify/
 │   └── functions/
-│       └── state.js           # Serverless function: GET/PUT shared group state
-├── package.json               # Single runtime dep: @netlify/blobs
+│       └── state.js           # Netlify Function v2: GET/PUT shared group state
+├── package.json               # Single runtime dep: @netlify/blobs ^10.7.5
 ├── README.md
+├── LICENSE
 └── .gitignore
 ```
 
@@ -27,14 +37,14 @@ There is no build step. The Netlify publish directory is `.` (repo root). `index
 ## Development Commands
 
 ```bash
-# Install dependencies (only @netlify/blobs)
+# Install dependencies
 npm install
 
 # Start local dev server with live Netlify Functions support
 netlify dev
 ```
 
-Deployment is fully automated: push to the main branch and Netlify CI deploys. There is no manual build command.
+Deployment is fully automated: push to `main` and Netlify CI deploys. No build command needed.
 
 Manual testing is done via browser at the URL served by `netlify dev`. There is no test framework.
 
@@ -45,47 +55,54 @@ Manual testing is done via browser at the URL served by `netlify dev`. There is 
 **Frontend (`index.html`)**
 - Single file. All CSS and JS are inline — no external scripts, no module bundler.
 - Three views rendered in-place: Randomize, Setup, History.
-- Dark WoW theme: background `#0a0a0f`, gold accent `#ffd100`. Each WoW class has its own CSS custom property for color.
-- Reveal animation uses the Web Audio API (synthesized tones — no audio files).
-- Communicates with the backend exclusively via `fetch` calls to `/.netlify/functions/state`.
+- Dark WoW theme: background `#0a0a0f`, gold accent `#ffd100`.
+- Reveal animation: sequential slot reveal (~7s), then dungeon roll with fanfare. All sounds synthesized via Web Audio API — no audio files.
+- Communicates with the backend exclusively via `fetch` to `/.netlify/functions/state`.
+- Responsive scaling: base 16px font / 1200px layout. At 1440p: 20px / 1500px. At 1920p: 23px / 1800px. All sizing in `rem` so scaling is controlled via `html { font-size }` in media queries.
+- Roll results always display in order: Tank → Heal → DPS → DPS → DPS.
+- Password cached in `sessionStorage` (cleared on tab close).
 
 **Backend (`netlify/functions/state.js`)**
-- Single Netlify Function, accessible at `/.netlify/functions/state`.
-- `GET` — returns the current shared state JSON (assignments + history). Returns a safe empty default on first run.
-- `PUT` — accepts updated state, persists it, trims history to a maximum of 200 entries, returns the saved state.
-- State is stored in Netlify Blobs (no external database).
+- Netlify Function v2 — uses `req.method`, `req.headers.get()`, `req.json()`, returns `new Response(...)`.
+- `GET` — returns current state JSON. Returns empty default `{ version:1, players:[], history:[] }` on first run.
+- `PUT` — validates and persists updated state. Trims history to 200 entries server-side.
+- Storage: Netlify Blobs, store `wow-mplus`, key `state`.
 
 **Auth**
-- All mutating requests must include the `X-Group-Password` header.
-- The function compares it against the `GROUP_PASSWORD` environment variable using constant-time comparison (`crypto.timingSafeEqual` from Node's built-in `crypto` module — never a plain `===` string compare on secrets).
+- Every request requires `X-Group-Password` header compared against `GROUP_PASSWORD` env var.
+- Uses `crypto.timingSafeEqual` on `Buffer` instances. Returns `false` immediately if `GROUP_PASSWORD` is unset or byte lengths differ (never short-circuits on content).
 
 ---
 
 ## Key Implementation Constraints
 
 **Security**
-- Auth comparison MUST use `crypto.timingSafeEqual`. Do not replace it with `===`.
-- All user-supplied strings rendered into HTML MUST be HTML-escaped. No `innerHTML` with raw/unescaped data.
-- No `eval`, `new Function(string)`, or dynamic code execution anywhere.
-- CSP headers are defined in `netlify.toml` — do not weaken them.
+- Auth MUST use `crypto.timingSafeEqual`. Never `===` on secrets.
+- All user-supplied strings rendered into HTML MUST go through `esc()` (the HTML-escape helper). No raw `innerHTML` with user data.
+- No `eval`, `new Function(string)`, or dynamic code execution.
+- CSP headers in `netlify.toml` — do not weaken them.
+- `#pw-overlay[hidden], #app[hidden] { display: none !important }` is required — these elements have explicit `display` values that would otherwise override the `hidden` attribute.
 
 **Randomization**
-- Class/spec/dungeon selection MUST use a Fisher-Yates shuffle. Do not use `Array.sort(() => Math.random() - 0.5)` — it produces a statistically biased result.
+- MUST use Fisher-Yates shuffle (`shuffle()` helper). Never `Array.sort(() => Math.random() - 0.5)`.
 
 **State**
-- History array is capped at 200 entries. Trimming happens in `state.js` on PUT, not in the frontend.
+- Max 15 players (`MAX_PLAYERS = 15` in `state.js`). Validated server-side on every PUT.
+- History capped at 200 entries, trimmed in `state.js` on PUT (not in the frontend).
 
 ---
 
 ## Game Data Constants
 
-All WoW game data lives as constants inside `index.html`:
+All WoW game data lives as JS constants in `index.html`:
 
-- **Classes (13):** Death Knight, Demon Hunter, Druid, Evoker, Hunter, Mage, Monk, Paladin, Priest, Rogue, Shaman, Warlock, Warrior — each with their specs and eligible roles (TANK / HEAL / DPS).
-- **Dungeons (8, Mythic+ Season 1 "Midnight" pool):** plain array of dungeon name strings.
-- **Roles:** `TANK`, `HEAL`, `DPS` — the randomizer must respect role eligibility per spec.
+- **`CLASSES`** — 13 classes, each with specs and eligible roles (`TANK` / `HEAL` / `DPS`).
+- **`CLASS_COLORS`** — official WoW hex color per class, used for colored player names.
+- **`SEASON_DUNGEONS`** — 8 dungeons for Mythic+ Midnight Season 1.
+- **`ROLE_COLORS`** — Tank `#2a4d8a`, Heal `#2a8a4d`, DPS `#8a2a2a`.
 
-To update when the season changes: edit only the dungeons array in `index.html`.
+To update when the season changes: edit `SEASON_DUNGEONS` in `index.html` only.  
+To update after a class/spec rework: edit `CLASSES` in `index.html` only.
 
 ---
 
@@ -93,22 +110,29 @@ To update when the season changes: edit only the dungeons array in `index.html`.
 
 | Variable | Required | Description |
 |---|---|---|
-| `GROUP_PASSWORD` | Yes | Shared password for all group members. Set in Netlify dashboard under Site Settings > Environment Variables. Never commit this value. |
+| `GROUP_PASSWORD` | Yes | Shared password for all group members. Set in Netlify: Site Settings → Environment Variables. Never commit. |
 
-For local development, create a `.env` file at the repo root (gitignored):
-
+For local dev, create `.env` at repo root (already gitignored):
 ```
 GROUP_PASSWORD=your_local_dev_password
 ```
+`netlify dev` loads it automatically.
 
-`netlify dev` loads `.env` automatically.
+---
+
+## Known Gotchas
+
+- **`rem` scaling**: font-size must be set on `html` (not `body`) for `rem` units to scale. The large-screen media queries target `html`.
+- **`hidden` attribute**: elements with explicit `display` CSS need `[hidden] { display: none !important }` or `element.hidden = true` has no visual effect.
+- **Netlify Function v2 API**: the function uses `req.method` / `req.headers.get()` / `await req.json()` / `new Response()` — not the v1 `event.httpMethod` / `exports.handler` style.
+- **`@netlify/blobs` storage**: uses `store.set(key, JSON.stringify(obj))` and `JSON.parse(await store.get(key))`. The `setJSON` convenience method exists but raw string round-trip is used for reliability across package versions.
 
 ---
 
 ## Out of Scope / Non-Goals
 
-- No individual user accounts — one shared group password only.
+- No individual user accounts — one shared group password.
 - No external database — Netlify Blobs only.
-- No build/CI test suite — manual browser testing via `netlify dev`.
+- No test suite — manual browser testing via `netlify dev`.
 - No real-time sync — members refresh manually.
-- No support for multiple WoW seasons simultaneously — update dungeon list manually on season rotation.
+- No multi-season support — update `SEASON_DUNGEONS` manually on rotation.
