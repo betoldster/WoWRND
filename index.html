@@ -1036,8 +1036,13 @@ function renderHistory() {
   const players = appState.players || [];
 
   let h = '<div class="view-content">';
-  h += '<h2 class="section-title">History</h2>';
-  h += `<div class="history-total">Total rolls: <strong>${history.length}</strong></div>`;
+  h += `<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.5rem;margin-bottom:1.25rem">
+    <h2 class="section-title" style="margin-bottom:0">History</h2>
+    <div style="display:flex;align-items:center;gap:1rem">
+      <span class="history-total">Total rolls: <strong>${history.length}</strong></span>
+      <button class="btn danger small" onclick="handleClearHistory()" ${history.length === 0 ? 'disabled' : ''}>Reset History</button>
+    </div>
+  </div>`;
 
   // Per-player role distribution
   if (players.length > 0 && history.length > 0) {
@@ -1102,7 +1107,6 @@ function renderHistory() {
       h += '</div></div>';
     }
     h += '</div>';
-    h += `<button class="btn danger" onclick="handleClearHistory()">Clear History</button>`;
     h += '</section>';
   } else {
     h += '<p class="notice">No rolls yet.</p>';
