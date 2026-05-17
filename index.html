@@ -489,11 +489,8 @@ footer {
 .spec-check-label:hover { opacity: 0.75; }
 .spec-check-label:has(input:checked) { opacity: 1; }
 .spec-check-label input[type="checkbox"] { accent-color: var(--gold); flex-shrink: 0; }
-.spec-role-tag {
-  margin-left: auto;
-  font-size: 0.68rem;
-  flex-shrink: 0;
-}
+.spec-label-text { display: flex; flex-direction: column; gap: 0.05rem; }
+.spec-role-tag { font-size: 0.65rem; }
 .card-banned {
   width: 100%;
   font-size: 0.78rem;
@@ -1043,8 +1040,10 @@ function playerCardHtml(p, editing) {
               ${CLASSES[cls].map(s =>
                 `<label class="spec-check-label">
                    <input type="checkbox" class="edit-spec" data-player="${id}" data-class="${esc(cls)}" value="${esc(s.spec)}"${enabled.includes(s.spec) ? ' checked' : ''}>
-                   <span style="color:${classColor(cls)}">${esc(s.spec)}</span>
-                   <span class="spec-role-tag" style="color:${ROLE_COLORS[s.role]}">${esc(ROLE_LABELS[s.role])}</span>
+                   <span class="spec-label-text">
+                     <span style="color:${classColor(cls)}">${esc(s.spec)}</span>
+                     <span class="spec-role-tag" style="color:${ROLE_COLORS[s.role]}">${esc(ROLE_LABELS[s.role])}</span>
+                   </span>
                  </label>`
               ).join('')}
             </div>`;
@@ -1102,8 +1101,10 @@ function addPlayerFormHtml() {
              ${CLASSES[cls].map(s =>
                `<label class="spec-check-label">
                   <input type="checkbox" class="new-spec" data-class="${esc(cls)}" value="${esc(s.spec)}">
-                  <span style="color:${classColor(cls)}">${esc(s.spec)}</span>
-                  <span class="spec-role-tag" style="color:${ROLE_COLORS[s.role]}">${esc(ROLE_LABELS[s.role])}</span>
+                  <span class="spec-label-text">
+                    <span style="color:${classColor(cls)}">${esc(s.spec)}</span>
+                    <span class="spec-role-tag" style="color:${ROLE_COLORS[s.role]}">${esc(ROLE_LABELS[s.role])}</span>
+                  </span>
                 </label>`
              ).join('')}
            </div>`
