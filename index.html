@@ -1254,7 +1254,7 @@ function renderHistory() {
     h += '<h3 class="subsection-title">Recent Rolls</h3>';
     h += '<div class="roll-list">';
     for (const roll of recent) {
-      const date = new Date(roll.rolledAt).toLocaleString();
+      const date = new Date(roll.rolledAt).toLocaleString('de-DE', { timeZone: 'Europe/Berlin' });
       h += `<div class="roll-entry">
         <div class="roll-header">
           <span class="roll-date">${esc(date)}</span>
