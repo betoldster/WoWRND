@@ -462,6 +462,40 @@ footer {
 }
 #pw-submit:hover { box-shadow: 0 0 20px rgba(255,209,0,0.3); }
 
+/* ---- SPEC GROUPS (SETUP) ---- */
+.spec-groups {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(155px, 1fr));
+  gap: 0.65rem;
+}
+.spec-group-name {
+  font-size: 0.82rem;
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+  padding-bottom: 0.2rem;
+  border-bottom: 1px solid var(--border);
+}
+.spec-check-label {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  cursor: pointer;
+  font-size: 0.8rem;
+  color: var(--text-dim);
+  padding: 0.1rem 0 0.1rem 0.2rem;
+  border-radius: 3px;
+  transition: color 0.1s;
+}
+.spec-check-label:hover { color: var(--text); }
+.spec-check-label input[type="checkbox"] { accent-color: var(--gold); flex-shrink: 0; }
+.spec-check-label input:checked + span { color: var(--text); }
+.spec-role-tag {
+  margin-left: auto;
+  font-size: 0.68rem;
+  color: var(--text-dim);
+  flex-shrink: 0;
+}
+
 /* ---- LARGE SCREENS ---- */
 /* target html so rem units scale throughout */
 @media (min-width: 1440px) {
@@ -703,6 +737,7 @@ async function loadState() {
     throw err;
   }
   appState = await res.json();
+  migratePlayers(appState);
 }
 
 async function saveState() {
@@ -784,17 +819,25 @@ function computeAssignments(playerIds) {
     const player = appState.players.find(p => p.id === shuffledIds[i]);
     const role   = roles[i];
 
-    const eligClasses = (player.classes || []).filter(
-      cls => CLASSES[cls] && CLASSES[cls].some(s => s.role === role)
-    );
+    const eligClasses = Object.keys(player.specs || {}).filter(cls => {
+      if (!CLASSES[cls]) return false;
+      return (player.specs[cls] || []).some(spec => {
+        const s = CLASSES[cls].find(s2 => s2.spec === spec);
+        return s && s.role === role;
+      });
+    });
 
     if (eligClasses.length === 0) {
       errors.push({ player, role });
       continue;
     }
 
-    const chosenClass = pick(eligClasses);
-    const chosenSpec  = pick(CLASSES[chosenClass].filter(s => s.role === role)).spec;
+    const chosenClass  = pick(eligClasses);
+    const eligSpecs    = (player.specs[chosenClass] || []).filter(spec => {
+      const s = CLASSES[chosenClass].find(s2 => s2.spec === spec);
+      return s && s.role === role;
+    });
+    const chosenSpec   = pick(eligSpecs);
 
     assignments.push({
       playerId:   player.id,
@@ -843,7 +886,7 @@ function renderRandomize() {
     h += '<div class="player-toggles">';
     for (const p of players) {
       const on      = activePlayers.has(p.id);
-      const chips   = (p.classes || []).map(c =>
+      const chips   = Object.keys(p.specs || {}).map(c =>
         `<span class="class-chip" style="color:${classColor(c)}">${esc(c)}</span>`
       ).join('');
       h += `<button class="player-toggle${on ? ' active' : ''}"
@@ -985,14 +1028,21 @@ function playerCardHtml(p, editing) {
         <input type="text" id="ename-${id}" value="${esc(p.name)}" maxlength="30" />
       </div>
       <div class="form-group">
-        <label>Classes</label>
-        <div class="class-checkboxes">
-          ${Object.keys(CLASSES).map(cls =>
-            `<label class="class-check-label">
-               <input type="checkbox" class="ecls-${id}" value="${esc(cls)}" ${(p.classes||[]).includes(cls)?'checked':''}>
-               <span style="color:${classColor(cls)}">${esc(cls)}</span>
-             </label>`
-          ).join('')}
+        <label>Specs</label>
+        <div class="spec-groups">
+          ${Object.keys(CLASSES).map(cls => {
+            const enabled = (p.specs || {})[cls] || [];
+            return `<div class="spec-group">
+              <div class="spec-group-name" style="color:${classColor(cls)}">${esc(cls)}</div>
+              ${CLASSES[cls].map(s =>
+                `<label class="spec-check-label">
+                   <input type="checkbox" class="edit-spec" data-player="${id}" data-class="${esc(cls)}" value="${esc(s.spec)}"${enabled.includes(s.spec) ? ' checked' : ''}>
+                   <span>${esc(s.spec)}</span>
+                   <span class="spec-role-tag">${esc(ROLE_LABELS[s.role])}</span>
+                 </label>`
+              ).join('')}
+            </div>`;
+          }).join('')}
         </div>
       </div>
       <div class="form-error" id="eerr-${id}" hidden></div>
@@ -1003,7 +1053,7 @@ function playerCardHtml(p, editing) {
     </div>`;
   }
 
-  const chips = (p.classes || []).map(c =>
+  const chips = Object.keys(p.specs || {}).map(c =>
     `<span class="class-chip" style="color:${classColor(c)}">${esc(c)}</span>`
   ).join('');
 
@@ -1025,13 +1075,19 @@ function addPlayerFormHtml() {
       <input type="text" id="new-name" maxlength="30" placeholder="Player name" />
     </div>
     <div class="form-group">
-      <label>Classes</label>
-      <div class="class-checkboxes">
+      <label>Specs</label>
+      <div class="spec-groups">
         ${Object.keys(CLASSES).map(cls =>
-          `<label class="class-check-label">
-             <input type="checkbox" class="new-cls" value="${esc(cls)}">
-             <span style="color:${classColor(cls)}">${esc(cls)}</span>
-           </label>`
+          `<div class="spec-group">
+             <div class="spec-group-name" style="color:${classColor(cls)}">${esc(cls)}</div>
+             ${CLASSES[cls].map(s =>
+               `<label class="spec-check-label">
+                  <input type="checkbox" class="new-spec" data-class="${esc(cls)}" value="${esc(s.spec)}">
+                  <span>${esc(s.spec)}</span>
+                  <span class="spec-role-tag">${esc(ROLE_LABELS[s.role])}</span>
+                </label>`
+             ).join('')}
+           </div>`
         ).join('')}
       </div>
     </div>
@@ -1107,6 +1163,7 @@ function renderHistory() {
         <div class="roll-header">
           <span class="roll-date">${esc(date)}</span>
           <span class="roll-dungeon">${esc(roll.dungeon || '—')}</span>
+          <button class="btn small danger" onclick="handleDeleteRoll('${esc(roll.id)}')">Delete</button>
         </div>
         <div class="roll-assignments">`;
       for (const a of (roll.assignments || [])) {
@@ -1287,10 +1344,15 @@ async function handleAddPlayer() {
   if (appState.players.some(p => p.name.toLowerCase() === name.toLowerCase()))
     return setFieldErr(errEl, 'A player with that name already exists.');
 
-  const classes = [...document.querySelectorAll('.new-cls:checked')].map(cb => cb.value);
-  if (classes.length === 0) return setFieldErr(errEl, 'Select at least one class.');
+  const specs = {};
+  document.querySelectorAll('.new-spec:checked').forEach(cb => {
+    const cls = cb.dataset.class;
+    if (!specs[cls]) specs[cls] = [];
+    specs[cls].push(cb.value);
+  });
+  if (Object.keys(specs).length === 0) return setFieldErr(errEl, 'Select at least one spec.');
 
-  const newPlayer = { id: genId(), name, classes };
+  const newPlayer = { id: genId(), name, specs };
   appState.players = [...appState.players, newPlayer];
 
   try {
@@ -1324,11 +1386,16 @@ async function handleSavePlayer(id) {
   if (appState.players.some(p => p.id !== id && p.name.toLowerCase() === name.toLowerCase()))
     return setFieldErr(errEl, 'A player with that name already exists.');
 
-  const classes = [...document.querySelectorAll(`.ecls-${id}:checked`)].map(cb => cb.value);
-  if (classes.length === 0) return setFieldErr(errEl, 'Select at least one class.');
+  const specs = {};
+  document.querySelectorAll(`.edit-spec[data-player="${id}"]:checked`).forEach(cb => {
+    const cls = cb.dataset.class;
+    if (!specs[cls]) specs[cls] = [];
+    specs[cls].push(cb.value);
+  });
+  if (Object.keys(specs).length === 0) return setFieldErr(errEl, 'Select at least one spec.');
 
   const old = appState.players;
-  appState.players = old.map(p => p.id === id ? { ...p, name, classes } : p);
+  appState.players = old.map(p => p.id === id ? { ...p, name, specs } : p);
 
   try {
     await saveState();
@@ -1373,6 +1440,18 @@ async function handleClearHistory() {
   }
 }
 
+async function handleDeleteRoll(id) {
+  const old = appState.history;
+  appState.history = old.filter(r => r.id !== id);
+  try {
+    await saveState();
+    renderHistory();
+  } catch (e) {
+    appState.history = old;
+    alert('Failed to delete roll: ' + e.message);
+  }
+}
+
 // ---- Helpers ----
 
 function setFieldErr(el, msg) {
@@ -1404,6 +1483,20 @@ function showInlineError(msg) {
 function updateMuteBtn() {
   const btn = document.getElementById('mute-btn');
   if (btn) btn.textContent = muted ? '🔇' : '🔊';
+}
+
+// ==================== MIGRATION ====================
+
+function migratePlayers(state) {
+  for (const p of state.players) {
+    if (!p.specs && p.classes) {
+      p.specs = {};
+      for (const cls of p.classes) {
+        if (CLASSES[cls]) p.specs[cls] = CLASSES[cls].map(s => s.spec);
+      }
+      delete p.classes;
+    }
+  }
 }
 
 // ==================== BOOT ====================

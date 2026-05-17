@@ -79,12 +79,14 @@ exports.default = async (req) => {
       if (typeof p.name !== 'string' || !p.name || p.name.length > MAX_NAME_LEN) {
         return errResponse(400, `Each player name must be a non-empty string (max ${MAX_NAME_LEN} chars)`);
       }
-      if (!Array.isArray(p.classes)) {
-        return errResponse(400, 'Each player must have a classes array');
+      if (typeof p.specs !== 'object' || p.specs === null || Array.isArray(p.specs)) {
+        return errResponse(400, 'Each player must have a specs object');
       }
-      for (const c of p.classes) {
-        if (typeof c !== 'string') {
-          return errResponse(400, 'Class names must be strings');
+      for (const [cls, specList] of Object.entries(p.specs)) {
+        if (typeof cls !== 'string') return errResponse(400, 'Spec class keys must be strings');
+        if (!Array.isArray(specList)) return errResponse(400, 'Spec lists must be arrays');
+        for (const s of specList) {
+          if (typeof s !== 'string') return errResponse(400, 'Spec names must be strings');
         }
       }
     }
