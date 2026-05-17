@@ -481,18 +481,17 @@ footer {
   gap: 0.4rem;
   cursor: pointer;
   font-size: 0.8rem;
-  color: var(--text-dim);
   padding: 0.1rem 0 0.1rem 0.2rem;
   border-radius: 3px;
-  transition: color 0.1s;
+  opacity: 0.45;
+  transition: opacity 0.1s;
 }
-.spec-check-label:hover { color: var(--text); }
+.spec-check-label:hover { opacity: 0.75; }
+.spec-check-label:has(input:checked) { opacity: 1; }
 .spec-check-label input[type="checkbox"] { accent-color: var(--gold); flex-shrink: 0; }
-.spec-check-label input:checked + span { color: var(--text); }
 .spec-role-tag {
   margin-left: auto;
   font-size: 0.68rem;
-  color: var(--text-dim);
   flex-shrink: 0;
 }
 .card-banned {
@@ -1044,8 +1043,8 @@ function playerCardHtml(p, editing) {
               ${CLASSES[cls].map(s =>
                 `<label class="spec-check-label">
                    <input type="checkbox" class="edit-spec" data-player="${id}" data-class="${esc(cls)}" value="${esc(s.spec)}"${enabled.includes(s.spec) ? ' checked' : ''}>
-                   <span>${esc(s.spec)}</span>
-                   <span class="spec-role-tag">${esc(ROLE_LABELS[s.role])}</span>
+                   <span style="color:${classColor(cls)}">${esc(s.spec)}</span>
+                   <span class="spec-role-tag" style="color:${ROLE_COLORS[s.role]}">${esc(ROLE_LABELS[s.role])}</span>
                  </label>`
               ).join('')}
             </div>`;
@@ -1103,8 +1102,8 @@ function addPlayerFormHtml() {
              ${CLASSES[cls].map(s =>
                `<label class="spec-check-label">
                   <input type="checkbox" class="new-spec" data-class="${esc(cls)}" value="${esc(s.spec)}">
-                  <span>${esc(s.spec)}</span>
-                  <span class="spec-role-tag">${esc(ROLE_LABELS[s.role])}</span>
+                  <span style="color:${classColor(cls)}">${esc(s.spec)}</span>
+                  <span class="spec-role-tag" style="color:${ROLE_COLORS[s.role]}">${esc(ROLE_LABELS[s.role])}</span>
                 </label>`
              ).join('')}
            </div>`
