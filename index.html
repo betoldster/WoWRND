@@ -538,9 +538,6 @@ footer {
 }
 .active-count-warn { animation: flash-warn 0.5s ease; }
 
-/* ---- KEY NO-KEY INDICATOR ---- */
-.key-no-key { font-size: 0.75rem; font-weight: 400; color: var(--text-dim); margin-left: 0.3rem; }
-
 /* ---- DUNGEON DISTRIBUTION ---- */
 .dungeon-dist { display: flex; flex-direction: column; gap: 0.4rem; max-width: 600px; margin-bottom: 1.5rem; }
 .dungeon-dist-name { min-width: 160px; font-size: 0.85rem; color: var(--text); flex-shrink: 0; }
@@ -713,13 +710,6 @@ function genId() {
 
 function sleep(ms) {
   return new Promise(r => setTimeout(r, ms));
-}
-
-function loadStoredKeys() {
-  try { return JSON.parse(sessionStorage.getItem('wow_keys') || '{}'); } catch { return {}; }
-}
-function saveStoredKeys(stored) {
-  sessionStorage.setItem('wow_keys', JSON.stringify(stored));
 }
 
 function classColor(cls) {
@@ -906,10 +896,6 @@ function renderRandomize() {
   const main    = document.getElementById('main');
   const players = appState.players;
   const enough  = players.length >= 5;
-  const stored  = (rPhase === 'key-entry') ? loadStoredKeys() : {};
-  const hasPrefilledKeys = rPhase === 'key-entry' &&
-    Object.values(stored).some(p => Object.values(p).some(Boolean));
-
   let h = '<div class="view-content">';
 
   // Section: player toggles
@@ -989,28 +975,18 @@ function renderRandomize() {
     h += '<section class="section" id="key-section">';
     h += '<h2 class="section-title">🗝️ Keys Available</h2>';
     h += `<p class="key-section-desc">Check dungeons each player has a key for. Duplicates raise that dungeon's odds. Leave all unchecked to roll from the full season pool.</p>`;
-    if (hasPrefilledKeys) {
-      h += `<p class="notice" style="margin-bottom:0.75rem">Key selections restored from your last session — untick any you've since used.</p>`;
-    }
     h += '<div class="key-grid">';
     for (const a of rAssignments) {
-      const playerKeys   = stored[a.playerId];
-      const hasStoredData = playerKeys !== undefined;
-      const hasAnyKey    = hasStoredData && Object.values(playerKeys).some(Boolean);
-      const showNoKey    = hasStoredData && !hasAnyKey;
       h += `<div class="key-player">
-              <div class="key-player-name" style="color:${classColor(a.class)}">
-                ${esc(a.playerName)}${showNoKey ? '<span class="key-no-key">(no key)</span>' : ''}
-              </div>
+              <div class="key-player-name" style="color:${classColor(a.class)}">${esc(a.playerName)}</div>
               <div class="key-checkboxes">`;
       for (const d of SEASON_DUNGEONS) {
-        const cbId      = `kc-${esc(a.playerId)}-${d.replace(/[^a-z0-9]/gi, '_')}`;
-        const isChecked = (playerKeys?.[d]) === true;
+        const cbId = `kc-${esc(a.playerId)}-${d.replace(/[^a-z0-9]/gi, '_')}`;
         h += `<label class="key-label">
                 <input type="checkbox" class="key-cb"
                   id="${cbId}"
                   data-player="${esc(a.playerId)}"
-                  data-dungeon="${esc(d)}"${isChecked ? ' checked' : ''}>
+                  data-dungeon="${esc(d)}">
                 <span>${esc(d)}</span>
               </label>`;
       }
@@ -1055,13 +1031,7 @@ function updateRollKeyBtn() {
   if (btn) btn.disabled = !document.querySelector('.key-cb:checked');
 }
 
-function onKeyChange(e) {
-  const stored  = loadStoredKeys();
-  const pid     = e.target.dataset.player;
-  const dungeon = e.target.dataset.dungeon;
-  if (!stored[pid]) stored[pid] = {};
-  stored[pid][dungeon] = e.target.checked;
-  saveStoredKeys(stored);
+function onKeyChange() {
   updateRollKeyBtn();
 }
 
@@ -1457,13 +1427,6 @@ async function runDungeonReveal(dungeon, fromFullPool) {
       else finalSec.prepend(note);
     }
   }
-
-  // Clear the rolled dungeon from stored key selections
-  const storedKeys = loadStoredKeys();
-  for (const pid of Object.keys(storedKeys)) {
-    if (storedKeys[pid]) delete storedKeys[pid][dungeon];
-  }
-  saveStoredKeys(storedKeys);
 
   // Persist to history
   const roll = {
