@@ -130,7 +130,7 @@ footer {
 /* ---- SHARED LAYOUT ---- */
 .view-content { max-width: 1200px; margin: 0 auto; padding: 1.5rem 1.25rem; }
 .section { margin-bottom: 2rem; }
-.section-title    { color: var(--gold); font-size: 1.1rem; font-weight: 600; margin-bottom: 1rem; }
+.section-title    { color: var(--text); font-size: 1.1rem; font-weight: 600; margin-bottom: 1rem; }
 .subsection-title { color: var(--text); font-size: 0.95rem; font-weight: 600; margin-bottom: 0.75rem; }
 .center { text-align: center; }
 
@@ -309,7 +309,7 @@ footer {
   cursor: pointer;
   font-size: 0.82rem;
   color: var(--text-dim);
-  padding: 0.15rem 0;
+  padding: 0.4rem 0;
   transition: color 0.1s;
 }
 .key-label:hover { color: var(--text); }
@@ -359,7 +359,7 @@ footer {
   padding: 1.25rem;
   margin-top: 1rem;
 }
-.add-player-form h3 { color: var(--gold); font-size: 0.95rem; margin-bottom: 1rem; }
+.add-player-form h3 { color: var(--text); font-size: 0.95rem; margin-bottom: 1rem; }
 .form-group { margin-bottom: 0.9rem; }
 .form-group label { display: block; font-size: 0.82rem; color: var(--text-dim); margin-bottom: 0.4rem; text-transform: uppercase; letter-spacing: 0.05em; }
 .form-group input[type="text"] {
@@ -524,7 +524,26 @@ footer {
 @media (max-width: 430px) {
   .key-grid { grid-template-columns: 1fr; }
   .player-toggle { width: 100%; }
+  header h1 { display: none; }
+  .roll-key-sticky { position: sticky; bottom: 1rem; padding: 0.5rem 0; background: var(--bg); }
 }
+
+/* ---- FOCUS RING ---- */
+:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
+
+/* ---- ACTIVE COUNT WARNING ---- */
+@keyframes flash-warn {
+  0%, 100% { color: var(--text-dim); }
+  30%      { color: #e07070; }
+}
+.active-count-warn { animation: flash-warn 0.5s ease; }
+
+/* ---- KEY NO-KEY INDICATOR ---- */
+.key-no-key { font-size: 0.75rem; font-weight: 400; color: var(--text-dim); margin-left: 0.3rem; }
+
+/* ---- DUNGEON DISTRIBUTION ---- */
+.dungeon-dist { display: flex; flex-direction: column; gap: 0.4rem; max-width: 600px; margin-bottom: 1.5rem; }
+.dungeon-dist-name { min-width: 160px; font-size: 0.85rem; color: var(--text); flex-shrink: 0; }
 </style>
 </head>
 <body>
@@ -572,6 +591,7 @@ const SEASON_DUNGEONS = [
   "Skyreach",
   "Pit of Saron",
 ];
+const CURRENT_SEASON = "Midnight Season 1";
 
 const CLASSES = {
   'Death Knight': [
@@ -695,6 +715,13 @@ function sleep(ms) {
   return new Promise(r => setTimeout(r, ms));
 }
 
+function loadStoredKeys() {
+  try { return JSON.parse(sessionStorage.getItem('wow_keys') || '{}'); } catch { return {}; }
+}
+function saveStoredKeys(stored) {
+  sessionStorage.setItem('wow_keys', JSON.stringify(stored));
+}
+
 function classColor(cls) {
   return CLASS_COLORS[cls] || '#cccccc';
 }
@@ -717,7 +744,10 @@ let rDungeon       = '';
 let rKeyPool       = [];
 let isAnimating    = false;
 let muted          = sessionStorage.getItem('wow_muted') === 'true';
-let audioCtx       = null;
+let audioCtx            = null;
+let skipReveal          = false;
+let clearHistoryPending = false;
+let clearHistoryTimer   = null;
 
 // ==================== API ====================
 
@@ -876,20 +906,30 @@ function renderRandomize() {
   const main    = document.getElementById('main');
   const players = appState.players;
   const enough  = players.length >= 5;
+  const stored  = (rPhase === 'key-entry') ? loadStoredKeys() : {};
+  const hasPrefilledKeys = rPhase === 'key-entry' &&
+    Object.values(stored).some(p => Object.values(p).some(Boolean));
 
   let h = '<div class="view-content">';
 
   // Section: player toggles
   h += '<section class="section">';
-  h += '<h2 class="section-title">Active Players</h2>';
+  const clearBtn = enough && rPhase === 'idle'
+    ? `<button class="btn small" style="margin-left:0.5rem;vertical-align:middle" onclick="clearActivePlayers()"${activePlayers.size === 0 ? ' disabled' : ''}>Clear</button>`
+    : '';
+  h += `<div style="display:flex;align-items:baseline;gap:0.5rem;margin-bottom:1rem;flex-wrap:wrap">
+    <h2 class="section-title" style="margin-bottom:0">Active Players</h2>
+    <span id="active-count" style="font-size:0.85rem;color:var(--text-dim)">${activePlayers.size} / 5</span>
+    ${clearBtn}
+  </div>`;
 
   if (!enough) {
     h += `<p class="notice">You need at least 5 players in your roster. <button class="link-btn" onclick="showView('setup')">Go to Setup →</button></p>`;
   } else {
     h += '<div class="player-toggles">';
     for (const p of players) {
-      const on      = activePlayers.has(p.id);
-      const chips   = Object.keys(p.specs || {}).map(c =>
+      const on    = activePlayers.has(p.id);
+      const chips = Object.keys(p.specs || {}).map(c =>
         `<span class="class-chip" style="color:${classColor(c)}">${esc(c)}</span>`
       ).join('');
       h += `<button class="player-toggle${on ? ' active' : ''}"
@@ -900,7 +940,6 @@ function renderRandomize() {
             </button>`;
     }
     h += '</div>';
-    h += `<div class="active-count">${activePlayers.size} / 5 active</div>`;
   }
   h += '</section>';
 
@@ -915,9 +954,11 @@ function renderRandomize() {
 
   // Section: roll result slots
   if (rPhase === 'revealing' || rPhase === 'key-entry' || rPhase === 'done') {
-    h += '<section class="section" id="slots-section"><div class="slots">';
+    const isRevealing = rPhase === 'revealing';
+    h += `<section class="section" id="slots-section"${isRevealing ? ' aria-hidden="true"' : ''}>`;
+    h += isRevealing ? '<div class="slots">' : '<div class="slots" role="status" aria-live="polite">';
 
-    if (rPhase === 'revealing') {
+    if (isRevealing) {
       for (let i = 0; i < rAssignments.length; i++) {
         const a = rAssignments[i];
         h += `<div class="slot" id="slot-${i}">
@@ -936,33 +977,50 @@ function renderRandomize() {
       }
     }
 
-    h += '</div></section>';
+    h += '</div>';
+    if (isRevealing) {
+      h += `<button class="btn small" style="margin-top:0.75rem" onclick="skipReveal=true">Skip →</button>`;
+    }
+    h += '</section>';
   }
 
   // Section: key selection
   if (rPhase === 'key-entry') {
     h += '<section class="section" id="key-section">';
     h += '<h2 class="section-title">🗝️ Keys Available</h2>';
-    h += '<p class="key-section-desc">Check dungeons each player has a key for. Duplicates raise that dungeon\'s odds.</p>';
+    h += `<p class="key-section-desc">Check dungeons each player has a key for. Duplicates raise that dungeon's odds. Leave all unchecked to roll from the full season pool.</p>`;
+    if (hasPrefilledKeys) {
+      h += `<p class="notice" style="margin-bottom:0.75rem">Key selections restored from your last session — untick any you've since used.</p>`;
+    }
     h += '<div class="key-grid">';
     for (const a of rAssignments) {
+      const playerKeys   = stored[a.playerId];
+      const hasStoredData = playerKeys !== undefined;
+      const hasAnyKey    = hasStoredData && Object.values(playerKeys).some(Boolean);
+      const showNoKey    = hasStoredData && !hasAnyKey;
       h += `<div class="key-player">
-              <div class="key-player-name" style="color:${classColor(a.class)}">${esc(a.playerName)}</div>
+              <div class="key-player-name" style="color:${classColor(a.class)}">
+                ${esc(a.playerName)}${showNoKey ? '<span class="key-no-key">(no key)</span>' : ''}
+              </div>
               <div class="key-checkboxes">`;
       for (const d of SEASON_DUNGEONS) {
-        const cbId = `kc-${esc(a.playerId)}-${d.replace(/[^a-z0-9]/gi, '_')}`;
+        const cbId      = `kc-${esc(a.playerId)}-${d.replace(/[^a-z0-9]/gi, '_')}`;
+        const isChecked = (playerKeys?.[d]) === true;
         h += `<label class="key-label">
                 <input type="checkbox" class="key-cb"
                   id="${cbId}"
                   data-player="${esc(a.playerId)}"
-                  data-dungeon="${esc(d)}">
+                  data-dungeon="${esc(d)}"${isChecked ? ' checked' : ''}>
                 <span>${esc(d)}</span>
               </label>`;
       }
-      h += '</div></div>';
+      h += `  </div>
+            </div>`;
     }
     h += '</div>';
-    h += `<button class="big-btn" id="roll-key-btn" disabled onclick="handleRollKey()">🗝️ ROLL KEY</button>`;
+    h += `<div class="roll-key-sticky">
+            <button class="big-btn" id="roll-key-btn" disabled onclick="handleRollKey()">🗝️ ROLL KEY</button>
+          </div>`;
     h += '</section>';
   }
 
@@ -973,7 +1031,10 @@ function renderRandomize() {
               <div class="dungeon-label">Tonight's Dungeon</div>
               <div class="dungeon-name" id="dungeon-name-display">${esc(rDungeon)}</div>
             </div>
-            <button class="big-btn secondary" style="margin-top:1rem" onclick="resetRandomize()">🔄 RANDOMIZE AGAIN</button>
+            <div style="display:flex;gap:0.75rem;justify-content:center;flex-wrap:wrap;margin-top:1rem">
+              <button class="big-btn" id="copy-result-btn" onclick="copyResult()">📋 Copy for Discord</button>
+              <button class="big-btn secondary" onclick="resetRandomize()">🔄 Randomize Again</button>
+            </div>
           </section>`;
   }
 
@@ -983,14 +1044,25 @@ function renderRandomize() {
   // Wire key checkboxes
   if (rPhase === 'key-entry') {
     document.querySelectorAll('.key-cb').forEach(cb =>
-      cb.addEventListener('change', updateRollKeyBtn)
+      cb.addEventListener('change', onKeyChange)
     );
+    updateRollKeyBtn(); // enable button if any pre-filled checkboxes are checked
   }
 }
 
 function updateRollKeyBtn() {
   const btn = document.getElementById('roll-key-btn');
   if (btn) btn.disabled = !document.querySelector('.key-cb:checked');
+}
+
+function onKeyChange(e) {
+  const stored  = loadStoredKeys();
+  const pid     = e.target.dataset.player;
+  const dungeon = e.target.dataset.dungeon;
+  if (!stored[pid]) stored[pid] = {};
+  stored[pid][dungeon] = e.target.checked;
+  saveStoredKeys(stored);
+  updateRollKeyBtn();
 }
 
 // ---------- SETUP VIEW ----------
@@ -1034,9 +1106,13 @@ function playerCardHtml(p, editing) {
         <label>Specs</label>
         <div class="spec-groups">
           ${Object.keys(CLASSES).map(cls => {
-            const enabled = (p.specs || {})[cls] || [];
+            const enabled    = (p.specs || {})[cls] || [];
+            const allChecked = enabled.length === CLASSES[cls].length;
             return `<div class="spec-group">
-              <div class="spec-group-name" style="color:${classColor(cls)}">${esc(cls)}</div>
+              <label class="class-check-label" style="color:${classColor(cls)};font-weight:600;font-size:0.82rem;border-bottom:1px solid var(--border);padding-bottom:0.2rem;margin-bottom:0.15rem">
+                <input type="checkbox" class="cls-all" onchange="handleClsAll(this)"${allChecked ? ' checked' : ''}>
+                ${esc(cls)}
+              </label>
               ${CLASSES[cls].map(s =>
                 `<label class="spec-check-label">
                    <input type="checkbox" class="edit-spec" data-player="${id}" data-class="${esc(cls)}" value="${esc(s.spec)}"${enabled.includes(s.spec) ? ' checked' : ''}>
@@ -1093,14 +1169,17 @@ function addPlayerFormHtml() {
       <input type="text" id="new-name" maxlength="30" placeholder="Player name" />
     </div>
     <div class="form-group">
-      <label>Specs</label>
+      <label>Specs <span style="font-size:0.78rem;color:var(--text-dim);font-weight:400;text-transform:none;letter-spacing:0">(uncheck specs this player can't play)</span></label>
       <div class="spec-groups">
         ${Object.keys(CLASSES).map(cls =>
           `<div class="spec-group">
-             <div class="spec-group-name" style="color:${classColor(cls)}">${esc(cls)}</div>
+             <label class="class-check-label" style="color:${classColor(cls)};font-weight:600;font-size:0.82rem;border-bottom:1px solid var(--border);padding-bottom:0.2rem;margin-bottom:0.15rem">
+               <input type="checkbox" class="cls-all" onchange="handleClsAll(this)" checked>
+               ${esc(cls)}
+             </label>
              ${CLASSES[cls].map(s =>
                `<label class="spec-check-label">
-                  <input type="checkbox" class="new-spec" data-class="${esc(cls)}" value="${esc(s.spec)}">
+                  <input type="checkbox" class="new-spec" data-class="${esc(cls)}" value="${esc(s.spec)}" checked>
                   <span class="spec-label-text">
                     <span style="color:${classColor(cls)}">${esc(s.spec)}</span>
                     <span class="spec-role-tag" style="color:${ROLE_COLORS[s.role]}">${esc(ROLE_LABELS[s.role])}</span>
@@ -1119,6 +1198,9 @@ function addPlayerFormHtml() {
 // ---------- HISTORY VIEW ----------
 
 function renderHistory() {
+  clearTimeout(clearHistoryTimer);
+  clearHistoryPending = false;
+
   const main    = document.getElementById('main');
   const history = appState.history || [];
   const players = appState.players || [];
@@ -1126,13 +1208,14 @@ function renderHistory() {
   let h = '<div class="view-content">';
   h += `<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.5rem;margin-bottom:1.25rem">
     <h2 class="section-title" style="margin-bottom:0">History</h2>
-    <div style="display:flex;align-items:center;gap:1rem">
+    <div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap">
       <span class="history-total">Total rolls: <strong>${history.length}</strong></span>
-      <button class="btn danger small" onclick="handleClearHistory()" ${history.length === 0 ? 'disabled' : ''}>Reset History</button>
+      <button class="btn small" onclick="handleExportHistory()" ${history.length === 0 ? 'disabled' : ''}>📥 Export</button>
+      <button class="btn danger small" id="clear-history-btn" onclick="handleClearHistory()" ${history.length === 0 ? 'disabled' : ''}>Reset History</button>
     </div>
   </div>`;
 
-  // Per-player role distribution
+  // Per-player role distribution + dungeon distribution
   if (players.length > 0 && history.length > 0) {
     const stats = {};
     for (const p of players) stats[p.id] = { name: p.name, TANK: 0, HEAL: 0, DPS: 0, total: 0 };
@@ -1149,6 +1232,7 @@ function renderHistory() {
     if (activeStat.length > 0) {
       h += '<section class="section">';
       h += '<h3 class="subsection-title">Role Distribution</h3>';
+      h += `<p class="notice" style="margin-bottom:0.75rem">Based on all ${history.length} roll${history.length === 1 ? '' : 's'}</p>`;
       h += '<div class="stats-grid">';
       for (const s of activeStat) {
         const pct = r => Math.round((r / s.total) * 100);
@@ -1169,6 +1253,26 @@ function renderHistory() {
       }
       h += '</div></section>';
     }
+
+    // Dungeon distribution
+    const dungeonCounts = SEASON_DUNGEONS.map(d => ({
+      name: d, count: history.filter(r => r.dungeon === d).length,
+    })).sort((a, b) => b.count - a.count);
+    const maxDungeonCount = Math.max(...dungeonCounts.map(d => d.count), 1);
+
+    h += '<section class="section">';
+    h += '<h3 class="subsection-title">Dungeon Distribution</h3>';
+    h += '<div class="dungeon-dist">';
+    for (const d of dungeonCounts) {
+      h += `<div class="stat-bar-row">
+        <span class="dungeon-dist-name">${esc(d.name)}</span>
+        <div class="stat-bar-track" style="flex:1">
+          <div class="stat-bar-fill" style="width:${Math.round(d.count / maxDungeonCount * 100)}%;background:var(--gold-dim)"></div>
+        </div>
+        <span class="stat-count">${d.count}</span>
+      </div>`;
+    }
+    h += '</div></section>';
   }
 
   // Recent rolls
@@ -1195,8 +1299,7 @@ function renderHistory() {
       }
       h += '</div></div>';
     }
-    h += '</div>';
-    h += '</section>';
+    h += '</div></section>';
   } else {
     h += '<p class="notice">No rolls yet.</p>';
   }
@@ -1211,18 +1314,37 @@ function renderHistory() {
 
 function togglePlayer(id) {
   if (rPhase !== 'idle') return;
+
+  if (!activePlayers.has(id) && activePlayers.size >= 5) {
+    const countEl = document.getElementById('active-count');
+    if (countEl) {
+      countEl.classList.remove('active-count-warn');
+      void countEl.offsetWidth; // reflow to restart animation
+      countEl.classList.add('active-count-warn');
+    }
+    return;
+  }
+
   activePlayers.has(id) ? activePlayers.delete(id) : activePlayers.add(id);
+  sessionStorage.setItem('wow_active', JSON.stringify([...activePlayers]));
 
   const btn = document.querySelector(`.player-toggle[data-id="${id}"]`);
   if (btn) btn.classList.toggle('active', activePlayers.has(id));
 
-  const count = document.querySelector('.active-count');
-  if (count) count.textContent = `${activePlayers.size} / 5 active`;
+  const countEl = document.getElementById('active-count');
+  if (countEl) countEl.textContent = `${activePlayers.size} / 5`;
 
   const rollBtn = document.querySelector('.big-btn:not(.secondary)');
   if (rollBtn && rollBtn.textContent.includes('RANDOMIZE')) {
     rollBtn.disabled = activePlayers.size !== 5;
   }
+}
+
+function clearActivePlayers() {
+  if (rPhase !== 'idle') return;
+  activePlayers.clear();
+  sessionStorage.removeItem('wow_active');
+  render();
 }
 
 function handleRandomize() {
@@ -1245,6 +1367,7 @@ function handleRandomize() {
 
 async function runRevealAnimation(assignments) {
   isAnimating = true;
+  skipReveal  = false;
   const names = appState.players.map(p => p.name);
 
   await sleep(200);
@@ -1255,26 +1378,31 @@ async function runRevealAnimation(assignments) {
     const detailEl = document.getElementById(`slot-detail-${i}`);
     if (!playerEl) continue;
 
-    // Roll 12 cycles at 80ms each
-    for (let c = 0; c < 12; c++) {
-      playerEl.textContent = pick(names);
-      playClick();
-      await sleep(80);
+    if (!skipReveal) {
+      for (let c = 0; c < 12; c++) {
+        playerEl.textContent = pick(names);
+        playClick();
+        await sleep(80);
+        if (skipReveal) break;
+      }
     }
 
-    // Settle
+    // Settle this slot
     playerEl.textContent = a.playerName;
     playerEl.style.color = classColor(a.class);
     playerEl.classList.remove('rolling');
     playerEl.classList.add('settled');
     if (detailEl) detailEl.textContent = `${a.spec} ${a.class}`;
-    playSettle();
-    await sleep(300);
+
+    if (!skipReveal) {
+      playSettle();
+      await sleep(300);
+    }
   }
 
-  await sleep(500);
+  if (!skipReveal) await sleep(500);
   isAnimating = false;
-  rPhase = 'key-entry';
+  rPhase      = 'key-entry';
   render();
 }
 
@@ -1324,9 +1452,18 @@ async function runDungeonReveal(dungeon, fromFullPool) {
       note.className = 'notice';
       note.style.marginTop = '0.5rem';
       note.textContent = 'No keys entered — picked from full season pool';
-      finalSec.insertBefore(note, finalSec.querySelector('.big-btn'));
+      const dungeonRevealEl = finalSec.querySelector('.dungeon-reveal');
+      if (dungeonRevealEl) dungeonRevealEl.insertAdjacentElement('afterend', note);
+      else finalSec.prepend(note);
     }
   }
+
+  // Clear the rolled dungeon from stored key selections
+  const storedKeys = loadStoredKeys();
+  for (const pid of Object.keys(storedKeys)) {
+    if (storedKeys[pid]) delete storedKeys[pid][dungeon];
+  }
+  saveStoredKeys(storedKeys);
 
   // Persist to history
   const roll = {
@@ -1350,6 +1487,26 @@ function resetRandomize() {
   rDungeon     = '';
   rKeyPool     = [];
   render();
+}
+
+async function copyResult() {
+  const roleEmoji = { TANK: '🛡️', HEAL: '💚', DPS: '⚔️' };
+  const lines = [
+    `🎲 Tonight: ${rDungeon}`,
+    ...rAssignments.map(a =>
+      `${roleEmoji[a.role] || '▪️'} ${ROLE_LABELS[a.role]}: ${a.playerName} — ${a.spec} ${a.class}`
+    ),
+  ];
+  try {
+    await navigator.clipboard.writeText(lines.join('\n'));
+    const btn = document.getElementById('copy-result-btn');
+    if (btn) {
+      btn.textContent = '✓ Copied!';
+      setTimeout(() => { btn.textContent = '📋 Copy for Discord'; }, 2000);
+    }
+  } catch {
+    alert(lines.join('\n'));
+  }
 }
 
 // ---- Setup ----
@@ -1448,7 +1605,18 @@ async function handleRemovePlayer(id) {
 // ---- History ----
 
 async function handleClearHistory() {
-  if (!confirm('Clear all roll history? This cannot be undone.')) return;
+  const btn = document.getElementById('clear-history-btn');
+  if (!clearHistoryPending) {
+    clearHistoryPending = true;
+    if (btn) btn.textContent = 'Confirm wipe?';
+    clearHistoryTimer = setTimeout(() => {
+      clearHistoryPending = false;
+      if (btn) btn.textContent = 'Reset History';
+    }, 3000);
+    return;
+  }
+  clearTimeout(clearHistoryTimer);
+  clearHistoryPending = false;
   const old = appState.history;
   appState.history = [];
   try {
@@ -1458,6 +1626,29 @@ async function handleClearHistory() {
     appState.history = old;
     alert('Failed to clear history: ' + e.message);
   }
+}
+
+async function handleExportHistory() {
+  try {
+    const res = await apiRequest('GET');
+    if (!res.ok) throw new Error(`Server error (${res.status})`);
+    const data = await res.json();
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href     = url;
+    a.download = `wow-mplus-${new Date().toISOString().slice(0, 10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  } catch (e) {
+    alert('Export failed: ' + e.message);
+  }
+}
+
+function handleClsAll(cb) {
+  const container = cb.closest('.spec-group');
+  if (!container) return;
+  container.querySelectorAll('.new-spec, .edit-spec').forEach(s => s.checked = cb.checked);
 }
 
 async function handleDeleteRoll(id) {
@@ -1521,8 +1712,27 @@ function migratePlayers(state) {
 
 // ==================== BOOT ====================
 
+function restoreActivePlayers() {
+  try {
+    const saved = JSON.parse(sessionStorage.getItem('wow_active') || '[]');
+    activePlayers = new Set(saved.filter(id => appState.players.some(p => p.id === id)));
+  } catch {
+    activePlayers = new Set();
+  }
+}
+
 async function boot() {
   updateMuteBtn();
+
+  // Render footer from constant so it stays in sync when CURRENT_SEASON changes
+  const footer = document.querySelector('footer');
+  if (footer) footer.innerHTML = `WoW M+ Randomizer &middot; ${esc(CURRENT_SEASON)}`;
+
+  // Pre-warm AudioContext on first user gesture to avoid Safari iOS silence
+  document.addEventListener('click', function primeAudio() {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+  }, { once: true });
 
   document.getElementById('mute-btn').addEventListener('click', () => {
     muted = !muted;
@@ -1543,6 +1753,7 @@ async function boot() {
 
     try {
       await loadState();
+      restoreActivePlayers();
       sessionStorage.setItem('wow_pw', sessionPw);
       document.getElementById('pw-overlay').hidden = true;
       document.getElementById('app').hidden = false;
@@ -1563,6 +1774,7 @@ async function boot() {
   if (sessionPw) {
     try {
       await loadState();
+      restoreActivePlayers();
       document.getElementById('pw-overlay').hidden = true;
       document.getElementById('app').hidden = false;
       render();
