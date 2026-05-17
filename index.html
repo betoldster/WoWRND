@@ -464,10 +464,12 @@ footer {
 
 /* ---- SPEC GROUPS (SETUP) ---- */
 .spec-groups {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(155px, 1fr));
+  display: flex;
+  flex-wrap: wrap;
   gap: 0.65rem;
+  align-items: flex-start;
 }
+.spec-group { min-width: 135px; }
 .spec-group-name {
   font-size: 0.82rem;
   font-weight: 600;
@@ -1139,17 +1141,17 @@ function addPlayerFormHtml() {
       <input type="text" id="new-name" maxlength="30" placeholder="Player name" />
     </div>
     <div class="form-group">
-      <label>Specs <span style="font-size:0.78rem;color:var(--text-dim);font-weight:400;text-transform:none;letter-spacing:0">(uncheck specs this player can't play)</span></label>
+      <label>Specs</label>
       <div class="spec-groups">
         ${Object.keys(CLASSES).map(cls =>
           `<div class="spec-group">
              <label class="class-check-label" style="color:${classColor(cls)};font-weight:600;font-size:0.82rem;border-bottom:1px solid var(--border);padding-bottom:0.2rem;margin-bottom:0.15rem">
-               <input type="checkbox" class="cls-all" onchange="handleClsAll(this)" checked>
+               <input type="checkbox" class="cls-all" onchange="handleClsAll(this)">
                ${esc(cls)}
              </label>
              ${CLASSES[cls].map(s =>
                `<label class="spec-check-label">
-                  <input type="checkbox" class="new-spec" data-class="${esc(cls)}" value="${esc(s.spec)}" checked>
+                  <input type="checkbox" class="new-spec" data-class="${esc(cls)}" value="${esc(s.spec)}">
                   <span class="spec-label-text">
                     <span style="color:${classColor(cls)}">${esc(s.spec)}</span>
                     <span class="spec-role-tag" style="color:${ROLE_COLORS[s.role]}">${esc(ROLE_LABELS[s.role])}</span>
