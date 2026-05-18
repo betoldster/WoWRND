@@ -1687,7 +1687,6 @@ let rKeyPool       = [];
 let rKeyInputs     = {};           // { [playerId]: { dungeon: string|null, level: number } }
 let rKeyHolder     = null;         // player name who holds the rolled key
 let rKeyLevel      = null;         // numeric key level of the rolled dungeon
-let rerollCount    = 0;
 let isAnimating    = false;
 let muted          = sessionStorage.getItem('wow_muted') === 'true';
 let audioCtx            = null;
@@ -2197,7 +2196,6 @@ function renderRandomize() {
     h += '</div>';
     h += '<div class="final-actions">';
     h += `<button class="btn-secondary" id="copy-result-btn" onclick="copyResult()">📋 COPY TO DISCORD</button>`;
-    h += `<button class="btn-secondary${rerollCount >= 1 ? '" disabled' : '"'} onclick="handleReroll()" style="opacity:${rerollCount >= 1 ? '0.45' : '1'}">↻ RE-ROLL ONE SLOT</button>`;
     h += '</div>';
 
     h += '</section>';
@@ -2650,40 +2648,6 @@ async function runRevealAnimation(assignments) {
   render();
 }
 
-function handleReroll() {
-  if (rerollCount >= 1 || isAnimating) return;
-
-  // Find first DPS slot
-  const dpsIdx = rAssignments.findIndex(a => a.role === 'DPS');
-  if (dpsIdx < 0) return;
-
-  const a      = rAssignments[dpsIdx];
-  const player = appState.players.find(p => p.id === a.playerId);
-  if (!player) return;
-
-  // Collect all eligible DPS combos for this player, excluding the current one
-  const options = [];
-  for (const [cls, enabledSpecs] of Object.entries(player.specs || {})) {
-    for (const spec of enabledSpecs) {
-      const s = (CLASSES[cls] || []).find(s2 => s2.spec === spec);
-      if (s && s.role === 'DPS' && !(cls === a.class && spec === a.spec)) {
-        options.push({ class: cls, spec });
-      }
-    }
-  }
-
-  if (options.length === 0) {
-    showInlineError(`${a.playerName} has no other DPS specs to re-roll.`);
-    return;
-  }
-
-  rerollCount++;
-  const chosen = pick(options);
-  rAssignments = rAssignments.map((slot, i) =>
-    i === dpsIdx ? { ...slot, class: chosen.class, spec: chosen.spec } : slot
-  );
-  render();
-}
 
 function setPlayerDungeon(playerId, dungeon) {
   const ki = rKeyInputs[playerId] || { dungeon: null, level: 8 };
@@ -2783,7 +2747,6 @@ function resetRandomize() {
   rKeyInputs   = {};
   rKeyHolder   = null;
   rKeyLevel    = null;
-  rerollCount  = 0;
   render();
 }
 
