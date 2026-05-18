@@ -1846,11 +1846,17 @@ const PHASE_LABELS = {
 function updateSeasonPill() {
   const el = document.getElementById('season-pill');
   if (!el) return;
-  if (activeView === 'randomize') {
+  if (activeView === 'randomize' && rPhase === 'done') {
+    el.textContent = '';
+    el.style.display = 'none';
+    el.classList.remove('season-pill--phase');
+  } else if (activeView === 'randomize') {
     el.textContent = PHASE_LABELS[rPhase] || SEASON_LABEL;
+    el.style.display = '';
     el.classList.add('season-pill--phase');
   } else {
     el.textContent = SEASON_LABEL;
+    el.style.display = '';
     el.classList.remove('season-pill--phase');
   }
 }
