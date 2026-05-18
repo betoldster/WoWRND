@@ -855,6 +855,7 @@ footer {
 .dungeon-reveal-row {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 14px;
   margin-bottom: 16px;
 }
@@ -2118,7 +2119,7 @@ function renderRandomize() {
     }
     h += '<div class="dungeon-card-body">';
     h += '<div class="dungeon-reveal-row">';
-    h += keystoneShard(42, rKeyLevel, '#ffc94d');
+    h += keystoneShard(72, rKeyLevel, '#ffc94d');
     h += `<div class="dungeon-name" id="dungeon-name-display">${esc(rDungeon)}</div>`;
     h += '</div>'; // dungeon-reveal-row
     h += '<div class="dungeon-bottom-strip">';
