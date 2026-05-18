@@ -2159,6 +2159,9 @@ function renderRandomize() {
     h += '</div>'; // final-layout
 
     // ---- Comp readout (stat tiles) ----
+    const brezHtml = comp.brez.length
+      ? comp.brez.map(c => `<span style="color:${CLASS_COLORS[c] || '#ccc'}">${esc(c)}</span>`).join(', ')
+      : 'none';
     h += '<div class="hero-stats-row" style="margin-bottom:8px">';
     h += `<div class="hero-stat-card">
       <div class="hero-stat-label">INTERRUPTS</div>
@@ -2166,11 +2169,11 @@ function renderRandomize() {
     </div>`;
     h += `<div class="hero-stat-card">
       <div class="hero-stat-label">LUST</div>
-      <div class="hero-stat-value" style="font-size:1.2rem;color:${comp.lust ? 'var(--gold)' : 'var(--danger)'}">${comp.lust ? esc(comp.lust) : 'none'}</div>
+      <div class="hero-stat-value" style="font-size:1.2rem;color:${comp.lust ? (CLASS_COLORS[comp.lust] || '#ccc') : 'var(--danger)'}">${comp.lust ? esc(comp.lust) : 'none'}</div>
     </div>`;
     h += `<div class="hero-stat-card">
       <div class="hero-stat-label">BREZ</div>
-      <div class="hero-stat-value" style="font-size:1.2rem;color:${comp.brez.length ? 'var(--gold)' : 'var(--danger)'}">${comp.brez.length ? comp.brez.map(esc).join(', ') : 'none'}</div>
+      <div class="hero-stat-value" style="font-size:1.2rem${comp.brez.length ? '' : ';color:var(--danger)'}">${brezHtml}</div>
     </div>`;
     h += `<div class="hero-stat-card">
       <div class="hero-stat-label">MELEE / RANGED</div>
