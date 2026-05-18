@@ -378,6 +378,7 @@ footer {
 .avatar--28 { width: 28px; height: 28px; font-size: 12px; }
 .avatar--32 { width: 32px; height: 32px; font-size: 13px; }
 .avatar--36 { width: 36px; height: 36px; font-size: 14px; }
+.avatar--70 { width: 70px; height: 70px; font-size: 26px; }
 .avatar--40 { width: 40px; height: 40px; font-size: 16px; }
 .avatar--48 { width: 48px; height: 48px; font-size: 18px; }
 .avatar--70 { width: 70px; height: 70px; font-size: 26px; }
@@ -481,62 +482,200 @@ footer {
   font-weight: 700;
 }
 
-/* ---- PLAYER TOGGLES (RANDOMIZE) ---- */
-.player-toggles {
+/* ---- RITUAL GATHERING (idle phase) ---- */
+.ritual-slots-row {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+.ritual-slot {
+  flex: 1;
+  max-width: 90px;
+  aspect-ratio: 1;
+  border-radius: 10px;
+  border: 2px dashed var(--border);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  transition: border-color 0.2s, background 0.2s;
+  overflow: hidden;
+}
+.ritual-slot--filled {
+  border-style: solid;
+  border-color: var(--keystone);
+  background: rgba(168,107,255,0.08);
+}
+.ritual-slot__q {
+  font-family: var(--font-display);
+  font-size: 20px;
+  color: var(--text-mute);
+  line-height: 1;
+}
+.ritual-slot__name {
+  font-family: var(--font-mono);
+  font-size: 8px;
+  color: var(--text-dim);
+  letter-spacing: 0.06em;
+  text-align: center;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding: 0 4px;
+}
+.gather-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-mute);
+  letter-spacing: 0.2em;
+  margin-bottom: 10px;
+}
+.class-pills-row {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
-  margin: 0.75rem 0;
+  gap: 8px;
+  margin-bottom: 18px;
 }
-.player-toggle {
-  background: var(--bg2);
-  border: 2px solid var(--border);
-  border-radius: 8px;
-  padding: 0.65rem 1rem;
-  cursor: pointer;
-  transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
-  text-align: left;
-  min-width: 130px;
-  color: var(--text);
-}
-.player-toggle:hover { border-color: #444; }
-.player-toggle.active {
-  border-color: var(--gold);
-  background: rgba(255,209,0,0.06);
-  box-shadow: 0 0 10px rgba(255,209,0,0.1);
-}
-.toggle-name   { display: block; font-weight: 600; margin-bottom: 0.3rem; }
-.toggle-classes { display: flex; flex-wrap: wrap; gap: 3px; }
-.active-count  { color: var(--text-dim); font-size: 0.85rem; margin-top: 0.4rem; }
-
-/* ---- SLOTS (REVEAL) ---- */
-.slots { display: flex; flex-direction: column; gap: 0.6rem; margin: 1rem 0; }
-.slot {
+.role-pool-row {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  background: var(--bg2);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 0.9rem 1.1rem;
-  transition: border-color 0.3s;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+  font-size: 12px;
+  color: var(--text-dim);
 }
-.slot.settled { border-color: #333; }
-.slot-player {
-  font-size: 1.15rem;
+.role-pool-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-mute);
+  letter-spacing: 0.2em;
+}
+.cast-btn {
+  font-family: var(--font-display);
+  font-size: 1.125rem;
   font-weight: 700;
-  min-width: 100px;
+  letter-spacing: 0.1em;
+  padding: 14px 32px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, var(--keystone-dim), var(--keystone));
+  border: none;
+  color: #fff;
+  cursor: pointer;
+  transition: box-shadow 0.2s, transform 0.15s;
+  box-shadow: 0 0 20px var(--keystone-glow);
+}
+.cast-btn:hover:not(:disabled) { box-shadow: 0 0 32px rgba(168,107,255,0.55); transform: translateY(-1px); }
+.cast-btn:disabled { opacity: 0.42; cursor: not-allowed; transform: none; box-shadow: none; }
+.cast-hint {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-mute);
+  letter-spacing: 0.15em;
+  margin-top: 8px;
+}
+
+/* ---- SLOT CARDS (reveal phase) ---- */
+.slot-reveal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+.slot-cards {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.slot-card {
+  flex: 1;
+  min-height: 280px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  transition: border-color 0.4s, box-shadow 0.4s;
+}
+.slot-card-role { margin-bottom: 2px; }
+.slot-portrait {
+  width: 70px;
+  height: 70px;
+  border-radius: 10px;
+  background: var(--bg-raised);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  flex-shrink: 0;
+  border: 1px solid var(--border);
+  transition: border-color 0.3s, background 0.4s;
+}
+.slot-portrait--settled { border-color: transparent; }
+.slot-cycle-name {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-dim);
+  letter-spacing: 0.06em;
+  text-align: center;
+  padding: 4px;
+}
+.slot-name-area {
+  font-family: var(--font-display);
+  font-size: 1.125rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-align: center;
+  min-height: 1.5em;
   transition: color 0.3s;
 }
-.slot-player.rolling { color: var(--text-dim) !important; }
-.slot-detail { font-size: 0.85rem; color: var(--text-dim); }
-
-@keyframes slot-settle {
-  0%   { transform: scale(1.06); }
-  60%  { transform: scale(0.97); }
+.slot-dots {
+  color: var(--text-mute);
+  letter-spacing: 4px;
+  animation: pulse-dots 1s ease-in-out infinite;
+}
+@keyframes pulse-dots {
+  0%, 100% { opacity: 0.3; }
+  50%       { opacity: 1; }
+}
+.slot-spec-line {
+  font-size: 10px;
+  color: var(--text-dim);
+  font-family: var(--font-mono);
+  text-align: center;
+  min-height: 1.2em;
+}
+.skip-btn {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: 1px solid var(--border-bright);
+  background: transparent;
+  color: var(--text-dim);
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+}
+.skip-btn:hover { border-color: var(--text-dim); color: var(--text); }
+.progress-line {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-mute);
+  letter-spacing: 0.15em;
+  text-align: center;
+}
+@keyframes card-settle {
+  0%   { transform: scale(1.04); }
+  60%  { transform: scale(0.98); }
   100% { transform: scale(1); }
 }
-.slot-player.settled { animation: slot-settle 0.25s ease; }
+.slot-card--settling { animation: card-settle 0.28s ease; }
 
 /* ---- PHASE TAG ---- */
 .phase-tag {
@@ -1101,14 +1240,18 @@ footer {
   header { padding: 0.6rem 1rem; gap: 0.5rem; }
   .tab { padding: 0.35rem 0.6rem; font-size: 0.75rem; }
   .view-content { padding: 1rem 0.9rem; }
-  .slot { flex-wrap: wrap; }
   .dungeon-name { font-size: 1.5rem; }
-  .big-btn { padding: 0.75rem 1.5rem; font-size: 1rem; }
   .stats-grid { grid-template-columns: 1fr; }
+  .slot-cards { flex-direction: column; }
+  .slot-card { min-height: unset; flex-direction: row; align-items: flex-start; padding: 12px; }
+  .slot-portrait { width: 48px; height: 48px; flex-shrink: 0; }
+  .avatar--70 { width: 48px; height: 48px; font-size: 18px; }
+  .slot-name-area { font-size: 1rem; text-align: left; }
+  .slot-spec-line { text-align: left; }
 }
 @media (max-width: 430px) {
-  .player-toggle { width: 100%; }
   .spec-chip__role { display: none; }
+  .ritual-slots-row { gap: 6px; }
 }
 
 /* ---- FOCUS RING ---- */
@@ -1593,75 +1736,120 @@ function renderRandomize() {
   const enough  = players.length >= 5;
   let h = '<div class="view-content">';
 
-  // Section: player toggles
-  h += '<section class="section">';
-  const clearBtn = enough && rPhase === 'idle'
-    ? `<button class="btn small" style="margin-left:0.5rem;vertical-align:middle" onclick="clearActivePlayers()"${activePlayers.size === 0 ? ' disabled' : ''}>Clear</button>`
-    : '';
-  h += `<div style="display:flex;align-items:baseline;gap:0.5rem;margin-bottom:1rem;flex-wrap:wrap">
-    <h2 class="section-title" style="margin-bottom:0">Active Players</h2>
-    <span id="active-count" style="font-size:0.85rem;color:var(--text-dim)">${activePlayers.size} / 5</span>
-    ${clearBtn}
-  </div>`;
-
-  if (!enough) {
-    h += `<p class="notice">You need at least 5 players in your roster. <button class="link-btn" onclick="showView('setup')">Go to Setup →</button></p>`;
-  } else {
-    h += '<div class="player-toggles">';
-    for (const p of players) {
-      const on    = activePlayers.has(p.id);
-      const chips = Object.keys(p.specs || {}).map(c =>
-        `<span class="class-chip" style="color:${classColor(c)}">${esc(c)}</span>`
-      ).join('');
-      h += `<button class="player-toggle${on ? ' active' : ''}"
-               onclick="togglePlayer('${esc(p.id)}')"
-               data-id="${esc(p.id)}">
-              <span class="toggle-name">${esc(p.name)}</span>
-              <span class="toggle-classes">${chips}</span>
-            </button>`;
-    }
-    h += '</div>';
-  }
-  h += '</section>';
-
-  // Section: randomize button (only in idle phase)
+  // Section: gathering (idle phase)
   if (rPhase === 'idle') {
     const canRoll = activePlayers.size === 5;
-    h += `<section class="section center">
-            <button class="big-btn" ${canRoll ? '' : 'disabled'} onclick="handleRandomize()">🎲 RANDOMIZE ROLES</button>
-            ${enough && !canRoll ? '<p class="notice" style="margin-top:0.6rem">Select exactly 5 players to roll.</p>' : ''}
-          </section>`;
+    const activeArr = [...activePlayers];
+
+    if (!enough) {
+      h += `<section class="section"><p class="notice">You need at least 5 players in your roster. <button class="link-btn" onclick="showView('setup')">Go to Roster →</button></p></section>`;
+    } else {
+      h += '<section class="section">';
+      h += '<div class="phase-tag">I · THE GATHERING</div>';
+
+      // Ritual slots
+      h += '<div class="ritual-slots-row">';
+      for (let i = 0; i < 5; i++) {
+        const pid = activeArr[i];
+        const p   = pid ? players.find(pl => pl.id === pid) : null;
+        if (p) {
+          const clsList = Object.keys(p.specs || {});
+          h += `<div class="ritual-slot ritual-slot--filled">
+            ${playerAvatar(28, p.name, clsList[0] || '')}
+            <div class="ritual-slot__name">${esc(p.name)}</div>
+          </div>`;
+        } else {
+          h += '<div class="ritual-slot"><div class="ritual-slot__q">?</div></div>';
+        }
+      }
+      h += '</div>';
+
+      // Roster label
+      h += '<div class="gather-label">ROSTER</div>';
+
+      // Class pills (one per player — toggles selection)
+      h += '<div class="class-pills-row">';
+      for (const p of players) {
+        const on      = activePlayers.has(p.id);
+        const clsList = Object.keys(p.specs || {});
+        const color   = clsList.length > 0 ? classColor(clsList[0]) : 'var(--text-dim)';
+        const classCap = clsList.join(' · ');
+        const pillStyle = on ? `--class-color:${color};box-shadow:0 0 8px ${color}44;` : '';
+        h += `<button class="class-pill${on ? ' class-pill--on' : ''}"
+          style="${pillStyle}"
+          onclick="togglePlayer('${esc(p.id)}')">
+          ${playerAvatar(28, p.name, clsList[0] || '')}
+          <span>
+            <span class="class-pill__name">${esc(p.name)}</span>
+            <span class="class-pill__classes" style="color:${on ? color : 'var(--text-mute)'}">${esc(classCap || 'No class')}</span>
+          </span>
+        </button>`;
+      }
+      h += '</div>';
+
+      // Role pool readout
+      let poolTank = 0, poolHeal = 0, poolDps = 0;
+      for (const pid of activePlayers) {
+        const pp = players.find(pl => pl.id === pid);
+        if (!pp) continue;
+        let hasTank = false, hasHeal = false, hasDps = false;
+        for (const [cls, specs] of Object.entries(pp.specs || {})) {
+          for (const spec of specs) {
+            const s = (CLASSES[cls] || []).find(s2 => s2.spec === spec);
+            if (!s) continue;
+            if (s.role === 'TANK') hasTank = true;
+            else if (s.role === 'HEAL') hasHeal = true;
+            else if (s.role === 'DPS')  hasDps  = true;
+          }
+        }
+        if (hasTank) poolTank++;
+        if (hasHeal) poolHeal++;
+        if (hasDps)  poolDps++;
+      }
+      if (activePlayers.size > 0) {
+        h += `<div class="role-pool-row">
+          <span class="role-pool-label">POOL</span>
+          ${roleBadge('TANK','sm')} <span>${poolTank} can tank</span>
+          ${roleBadge('HEAL','sm')} <span>${poolHeal} can heal</span>
+          ${roleBadge('DPS', 'sm')} <span>${poolDps} can DPS</span>
+        </div>`;
+      }
+
+      // Cast button
+      const need = 5 - activePlayers.size;
+      const hint = activePlayers.size === 0
+        ? 'CHOOSE 5 TO BEGIN'
+        : need === 1 ? '1 MORE TO CHOOSE' : `${need} MORE TO CHOOSE`;
+      h += `<div class="center">
+        <button class="cast-btn" ${canRoll ? '' : 'disabled'} onclick="handleRandomize()">◇ CAST THE LOTS ◇</button>
+        ${!canRoll ? `<div class="cast-hint">${hint}</div>` : ''}
+      </div>`;
+      h += '</section>';
+    }
   }
 
-  // Section: roll result slots
-  if (rPhase === 'revealing' || rPhase === 'key-entry' || rPhase === 'done') {
-    const isRevealing = rPhase === 'revealing';
-    h += `<section class="section" id="slots-section"${isRevealing ? ' aria-hidden="true"' : ''}>`;
-    h += isRevealing ? '<div class="slots">' : '<div class="slots" role="status" aria-live="polite">';
-
-    if (isRevealing) {
-      for (let i = 0; i < rAssignments.length; i++) {
-        const a = rAssignments[i];
-        h += `<div class="slot" id="slot-${i}">
-                ${roleBadge(a.role)}
-                <span class="slot-player rolling" id="slot-player-${i}">???</span>
-                <span class="slot-detail" id="slot-detail-${i}"></span>
-              </div>`;
-      }
-    } else {
-      for (const a of rAssignments) {
-        h += `<div class="slot settled">
-                ${roleBadge(a.role)}
-                <span class="slot-player" style="color:${classColor(a.class)}">${esc(a.playerName)}</span>
-                <span class="slot-detail">${esc(a.spec)} ${esc(a.class)}</span>
-              </div>`;
-      }
+  // Section: reveal cards (only while revealing)
+  if (rPhase === 'revealing') {
+    h += '<section class="section" id="slots-section">';
+    h += '<div class="phase-tag">II · THE ROLL</div>';
+    h += `<div class="slot-reveal-header">
+      <span></span>
+      <button class="skip-btn" onclick="skipReveal=true">SKIP ▸▸</button>
+    </div>`;
+    h += '<div class="slot-cards" role="status" aria-live="polite">';
+    for (let i = 0; i < rAssignments.length; i++) {
+      const a = rAssignments[i];
+      h += `<div class="slot-card" id="slot-card-${i}">
+        <div class="slot-card-role">${roleBadge(a.role)}</div>
+        <div class="slot-portrait" id="slot-portrait-${i}">
+          <span class="slot-cycle-name" id="slot-player-${i}">???</span>
+        </div>
+        <div class="slot-name-area" id="slot-name-${i}"><span class="slot-dots">· · ·</span></div>
+        <div class="slot-spec-line" id="slot-detail-${i}"></div>
+      </div>`;
     }
-
     h += '</div>';
-    if (isRevealing) {
-      h += `<button class="btn small" style="margin-top:0.75rem" onclick="skipReveal=true">Skip →</button>`;
-    }
+    h += '<div class="progress-line" id="reveal-progress">0 OF 5 BOUND · 5 STILL WRITHING</div>';
     h += '</section>';
   }
 
@@ -2119,30 +2307,10 @@ function renderHistory() {
 
 function togglePlayer(id) {
   if (rPhase !== 'idle') return;
-
-  if (!activePlayers.has(id) && activePlayers.size >= 5) {
-    const countEl = document.getElementById('active-count');
-    if (countEl) {
-      countEl.classList.remove('active-count-warn');
-      void countEl.offsetWidth; // reflow to restart animation
-      countEl.classList.add('active-count-warn');
-    }
-    return;
-  }
-
+  if (!activePlayers.has(id) && activePlayers.size >= 5) return;
   activePlayers.has(id) ? activePlayers.delete(id) : activePlayers.add(id);
   sessionStorage.setItem('wow_active', JSON.stringify([...activePlayers]));
-
-  const btn = document.querySelector(`.player-toggle[data-id="${id}"]`);
-  if (btn) btn.classList.toggle('active', activePlayers.has(id));
-
-  const countEl = document.getElementById('active-count');
-  if (countEl) countEl.textContent = `${activePlayers.size} / 5`;
-
-  const rollBtn = document.querySelector('.big-btn:not(.secondary)');
-  if (rollBtn && rollBtn.textContent.includes('RANDOMIZE')) {
-    rollBtn.disabled = activePlayers.size !== 5;
-  }
+  render();
 }
 
 function clearActivePlayers() {
@@ -2173,31 +2341,53 @@ function handleRandomize() {
 async function runRevealAnimation(assignments) {
   isAnimating = true;
   skipReveal  = false;
-  const names = appState.players.map(p => p.name);
+  const names = [...activePlayers]
+    .map(id => appState.players.find(p => p.id === id)?.name)
+    .filter(Boolean);
+  if (names.length === 0) names.push(...appState.players.map(p => p.name));
 
   await sleep(200);
 
   for (let i = 0; i < assignments.length; i++) {
     const a        = assignments[i];
-    const playerEl = document.getElementById(`slot-player-${i}`);
+    const cycleEl  = document.getElementById(`slot-player-${i}`);
     const detailEl = document.getElementById(`slot-detail-${i}`);
-    if (!playerEl) continue;
+    if (!cycleEl) continue;
 
     if (!skipReveal) {
       for (let c = 0; c < 12; c++) {
-        playerEl.textContent = pick(names);
+        cycleEl.textContent = pick(names);
         playClick();
         await sleep(80);
         if (skipReveal) break;
       }
     }
 
-    // Settle this slot
-    playerEl.textContent = a.playerName;
-    playerEl.style.color = classColor(a.class);
-    playerEl.classList.remove('rolling');
-    playerEl.classList.add('settled');
+    // Settle this card
+    const cc         = classColor(a.class);
+    const portraitEl = document.getElementById(`slot-portrait-${i}`);
+    const nameEl     = document.getElementById(`slot-name-${i}`);
+    const cardEl     = document.getElementById(`slot-card-${i}`);
+
+    if (portraitEl) {
+      portraitEl.classList.add('slot-portrait--settled');
+      portraitEl.style.background = `radial-gradient(ellipse at center, ${cc}44, ${cc}11)`;
+      portraitEl.innerHTML = playerAvatar(70, a.playerName, a.class);
+    }
+    if (nameEl) {
+      nameEl.innerHTML = `<span style="color:${cc}">${esc(a.playerName)}</span>`;
+    }
     if (detailEl) detailEl.textContent = `${a.spec} ${a.class}`;
+    if (cardEl) {
+      cardEl.classList.add('slot-card--settling');
+      cardEl.style.borderColor = cc;
+      cardEl.style.boxShadow   = `0 0 24px ${cc}40`;
+    }
+
+    // Update progress line
+    const settled = i + 1;
+    const prog = document.getElementById('reveal-progress');
+    if (prog) prog.textContent = `${settled} OF 5 BOUND · ${5 - settled} STILL WRITHING`;
 
     if (!skipReveal) {
       playSettle();
