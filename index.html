@@ -1538,7 +1538,17 @@ const DUNGEON_IMAGES = {
   "Maisara Caverns":         "https://wow.zamimg.com/uploads/guide/header/0dd06ff24a767e0569f6b1020b5280ce66e38a87.jpg",
 };
 
-const WEEKLY_AFFIXES = ["Tyrannical", "Xal'atath's Bargain", "Xal'atath's Guile"];
+const AFFIX_FORTIFY  = ["Tyrannical", "Fortified"];   // alternates weekly; group knows which
+const AFFIX_BARGAIN  = "Xal'atath's Bargain";          // keys 5–11
+const AFFIX_GUILE    = "Xal'atath's Guile";            // keys 12+
+const AFFIX_GUIDANCE = "Lindormi's Guidance";          // keys 2–4
+
+function affixesForLevel(level) {
+  if (level == null) return [];
+  if (level <= 4)  return [AFFIX_GUIDANCE];
+  if (level <= 11) return [...AFFIX_FORTIFY, AFFIX_BARGAIN];
+  return [...AFFIX_FORTIFY, AFFIX_GUILE];
+}
 const SEASON_LABEL   = "MIDNIGHT · S1 · WEEK 9";
 
 // Comp analysis constants — verified against Midnight Season 1 (patch 12.0.5)
@@ -2138,9 +2148,10 @@ function renderRandomize() {
       h += `<span>${esc(rKeyHolder)}'s key</span>`;
       h += '</div>';
     }
-    if (WEEKLY_AFFIXES.length) {
+    const affixes = affixesForLevel(rKeyLevel);
+    if (affixes.length) {
       h += '<div class="affix-tags">';
-      for (const affix of WEEKLY_AFFIXES) {
+      for (const affix of affixes) {
         h += `<span class="affix-tag">${esc(affix.toUpperCase())}</span>`;
       }
       h += '</div>';
