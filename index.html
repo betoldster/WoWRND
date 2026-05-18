@@ -3,7 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>⚔️ WoW M+ Randomizer</title>
+<title>WoWRND · Keystone Ritual</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700;800&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -12,26 +13,53 @@
 #app[hidden] { display: none !important; }
 
 :root {
-  --bg:        #0a0a0f;
-  --bg2:       #12121a;
-  --bg3:       #1a1a26;
-  --border:    #252530;
-  --gold:      #ffd100;
-  --gold-dim:  #a08a00;
-  --text:      #e0e0e0;
-  --text-dim:  #888;
-  --tank:      #2a4d8a;
-  --heal:      #2a8a4d;
-  --dps:       #8a2a2a;
-  --danger:    #8a2a2a;
-  --success:   #2a8a4d;
+  /* Backgrounds */
+  --bg:           #0b0916;
+  --bg-surface:   #15122a;
+  --bg-raised:    #1d1a37;
+  /* Aliases for existing CSS that uses --bg2 / --bg3 */
+  --bg2:          #15122a;
+  --bg3:          #1d1a37;
+
+  /* Borders */
+  --border:       #2a2447;
+  --border-bright:#3d3566;
+
+  /* Primary accent: keystone purple */
+  --keystone:     #a86bff;
+  --keystone-dim: #7445c4;
+  --keystone-glow:rgba(168,107,255,0.35);
+
+  /* Gold — reserved for dungeon reveal only */
+  --gold:         #ffc94d;
+  --gold-dim:     #7445c4;  /* repurposed → keystone-dim for old UI elements */
+  --gold-glow:    rgba(255,201,77,0.4);
+
+  /* Text */
+  --text:         #ece8ff;
+  --text-dim:     #8a83b5;
+  --text-mute:    #5b5680;
+
+  /* Role colors */
+  --tank:         #3b6cd9;
+  --heal:         #3cc977;
+  --dps:          #e34a4a;
+  --danger:       #e34a4a;
+  --success:      #3cc977;
+
+  /* Typography */
+  --font-display: "Cinzel", Georgia, serif;
+  --font-ui:      "Manrope", -apple-system, system-ui, sans-serif;
+  --font-mono:    "JetBrains Mono", ui-monospace, monospace;
 }
 
 body {
   background: var(--bg);
-  background-image: radial-gradient(ellipse at top center, #18102e 0%, var(--bg) 65%);
+  background-image:
+    radial-gradient(ellipse 80% 50% at 50% -10%, rgba(168,107,255,0.18), transparent 60%),
+    radial-gradient(ellipse 60% 40% at 85% 100%, rgba(168,107,255,0.06), transparent 60%);
   color: var(--text);
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  font-family: var(--font-ui);
   min-height: 100vh;
   font-size: 16px;
   line-height: 1.5;
@@ -42,35 +70,38 @@ body {
   position: fixed;
   inset: 0;
   background: var(--bg);
-  background-image: radial-gradient(ellipse at top center, #18102e 0%, var(--bg) 65%);
+  background-image:
+    radial-gradient(ellipse 80% 50% at 50% -10%, rgba(168,107,255,0.18), transparent 60%),
+    radial-gradient(ellipse 60% 40% at 85% 100%, rgba(168,107,255,0.06), transparent 60%);
   z-index: 100;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 .pw-box {
-  background: var(--bg2);
-  border: 1px solid var(--gold-dim);
-  border-radius: 10px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-bright);
+  border-radius: 12px;
   padding: 2.5rem 2rem;
   max-width: 380px;
   width: 92%;
   text-align: center;
-  box-shadow: 0 0 40px rgba(255,209,0,0.08);
+  box-shadow: 0 0 40px var(--keystone-glow), 0 4px 16px rgba(0,0,0,0.25);
 }
-.pw-box h2 { color: var(--gold); font-size: 1.5rem; margin-bottom: 0.5rem; }
-.pw-box p  { color: var(--text-dim); margin-bottom: 1.5rem; }
+.pw-box h2 { font-family: var(--font-display); color: var(--text); font-size: 1.5rem; margin-bottom: 0.5rem; letter-spacing: 0.1em; }
+.pw-box p  { color: var(--text-dim); margin-bottom: 1.5rem; font-family: var(--font-ui); }
 #pw-form   { display: flex; flex-direction: column; gap: 0.75rem; }
 #pw-input  {
-  background: var(--bg3);
+  background: var(--bg-raised);
   border: 1px solid var(--border);
   border-radius: 6px;
   color: var(--text);
+  font-family: var(--font-ui);
   font-size: 1rem;
   padding: 0.7rem 1rem;
   width: 100%;
 }
-#pw-input:focus { outline: none; border-color: var(--gold-dim); }
+#pw-input:focus { outline: none; border-color: var(--keystone-dim); }
 #pw-error { color: #e07070; font-size: 0.9rem; padding: 0.5rem 0; }
 
 /* ---- APP SHELL ---- */
@@ -81,41 +112,93 @@ header {
   align-items: center;
   gap: 1rem;
   padding: 0.75rem 1.5rem;
-  background: var(--bg2);
+  background: rgba(11,9,22,0.75);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   border-bottom: 1px solid var(--border);
   position: sticky;
   top: 0;
   z-index: 10;
   flex-wrap: wrap;
 }
-header h1 { color: var(--gold); font-size: 1.25rem; white-space: nowrap; }
+.header-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+.header-wordmark {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.wordmark-text {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  color: var(--text);
+  line-height: 1;
+}
+.season-pill {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 0.15em;
+  color: var(--text-mute);
+  line-height: 1;
+}
+.header-right { margin-left: auto; display: flex; align-items: center; gap: 0.5rem; }
+.grid-overlay {
+  background-image:
+    linear-gradient(rgba(168,107,255,0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(168,107,255,0.025) 1px, transparent 1px);
+  background-size: 40px 40px;
+  opacity: 0.5;
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
 
 nav { display: flex; gap: 0.25rem; flex: 1; }
 .tab {
   background: none;
   border: none;
+  border-bottom: 2px solid transparent;
   color: var(--text-dim);
   padding: 0.4rem 0.9rem;
-  border-radius: 6px;
+  border-radius: 0;
   cursor: pointer;
-  font-size: 0.9rem;
-  transition: background 0.15s, color 0.15s;
+  font-family: var(--font-ui);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  transition: color 0.15s, border-color 0.15s;
   white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
-.tab:hover  { background: rgba(255,255,255,0.05); color: var(--text); }
-.tab.active { background: rgba(255,209,0,0.1); color: var(--gold); font-weight: 600; }
+.tab:hover  { color: var(--text); }
+.tab.active { color: var(--text); border-bottom-color: var(--keystone); font-weight: 600; }
+.tab-glyph  { color: var(--text-mute); font-size: 0.75rem; transition: color 0.15s; }
+.tab.active .tab-glyph { color: var(--keystone); }
 
 .mute-btn {
-  margin-left: auto;
   background: none;
-  border: none;
-  font-size: 1.2rem;
+  border: 1px solid var(--border);
+  font-size: 1rem;
   cursor: pointer;
-  padding: 0.2rem 0.5rem;
-  border-radius: 4px;
-  transition: background 0.15s;
+  padding: 0;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color 0.15s, background 0.15s;
 }
-.mute-btn:hover { background: rgba(255,255,255,0.05); }
+.mute-btn:hover { border-color: var(--border-bright); background: rgba(255,255,255,0.04); }
 
 main { flex: 1; }
 footer {
@@ -128,7 +211,7 @@ footer {
 }
 
 /* ---- SHARED LAYOUT ---- */
-.view-content { max-width: 1200px; margin: 0 auto; padding: 1.5rem 1.25rem; }
+.view-content { max-width: 1100px; margin: 0 auto; padding: 24px 32px; }
 .section { margin-bottom: 2rem; }
 .section-title    { color: var(--text); font-size: 1.1rem; font-weight: 600; margin-bottom: 1rem; }
 .subsection-title { color: var(--text); font-size: 0.95rem; font-weight: 600; margin-bottom: 0.75rem; }
@@ -167,33 +250,72 @@ footer {
 /* ---- BUTTONS ---- */
 .big-btn {
   display: inline-block;
-  background: linear-gradient(135deg, #ffd100 0%, #c8a200 100%);
-  color: #0a0a0f;
+  background: linear-gradient(135deg, var(--keystone), var(--keystone-dim));
+  color: #fff;
   border: none;
-  padding: 0.9rem 2.5rem;
-  font-size: 1.1rem;
+  padding: 16px 56px;
+  font-family: var(--font-display);
+  font-size: 1.125rem;
   font-weight: 700;
-  border-radius: 8px;
+  border-radius: 6px;
   cursor: pointer;
-  box-shadow: 0 0 20px rgba(255,209,0,0.25), 0 2px 8px rgba(0,0,0,0.4);
+  box-shadow: 0 0 18px var(--keystone-glow);
   transition: box-shadow 0.15s, transform 0.15s, opacity 0.15s;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.2em;
+  position: relative;
 }
 .big-btn:hover:not(:disabled) {
-  box-shadow: 0 0 35px rgba(255,209,0,0.45), 0 4px 12px rgba(0,0,0,0.4);
-  transform: translateY(-2px);
+  box-shadow: 0 0 28px rgba(168,107,255,0.5);
+  transform: translateY(-1px);
 }
-.big-btn:disabled { opacity: 0.35; cursor: not-allowed; box-shadow: none; transform: none; }
+.big-btn:disabled { opacity: 0.55; cursor: not-allowed; box-shadow: none; transform: none; }
 .big-btn.secondary {
-  background: var(--bg3);
-  color: var(--gold);
-  border: 1px solid var(--gold-dim);
+  background: transparent;
+  color: var(--text);
+  border: 1px solid var(--border-bright);
   box-shadow: none;
+  font-family: var(--font-ui);
+  font-size: 0.8125rem;
+  letter-spacing: 0.1em;
+  padding: 11px 22px;
 }
 .big-btn.secondary:hover:not(:disabled) {
-  background: rgba(255,209,0,0.08);
+  background: rgba(255,255,255,0.04);
+  border-color: var(--keystone);
   box-shadow: none;
 }
+
+/* Semantic button aliases */
+.btn-primary {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: linear-gradient(135deg, var(--keystone), var(--keystone-dim));
+  color: #fff; border: none;
+  padding: 11px 22px; border-radius: 6px;
+  font-family: var(--font-display); font-size: 13px; font-weight: 700; letter-spacing: 0.18em;
+  box-shadow: 0 0 18px var(--keystone-glow);
+  cursor: pointer;
+  transition: box-shadow 0.15s, transform 0.15s;
+}
+.btn-primary:hover { box-shadow: 0 0 28px rgba(168,107,255,0.5); transform: translateY(-1px); }
+.btn-secondary {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: transparent; color: var(--text);
+  border: 1px solid var(--border-bright);
+  padding: 11px 22px; border-radius: 6px;
+  font-family: var(--font-ui); font-size: 13px; font-weight: 700; letter-spacing: 0.1em;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+.btn-secondary:hover { border-color: var(--keystone); background: rgba(168,107,255,0.06); }
+.btn-danger {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: transparent; color: var(--danger);
+  border: 1px solid rgba(227,74,74,0.33); border-radius: 5px;
+  font-family: var(--font-ui); font-size: 11px; font-weight: 600;
+  padding: 6px 12px; cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+.btn-danger:hover { background: rgba(227,74,74,0.12); border-color: var(--danger); }
 
 .btn {
   background: var(--bg3);
@@ -202,36 +324,161 @@ footer {
   padding: 0.45rem 0.9rem;
   border-radius: 5px;
   cursor: pointer;
+  font-family: var(--font-ui);
   font-size: 0.85rem;
   transition: border-color 0.15s, color 0.15s, background 0.15s;
 }
-.btn:hover         { border-color: var(--gold-dim); color: var(--gold); }
-.btn.danger        { border-color: #5a2020; color: #d07070; }
-.btn.danger:hover  { background: rgba(138,42,42,0.25); border-color: #8a2a2a; color: #e09090; }
+.btn:hover         { border-color: var(--border-bright); color: var(--text); }
+.btn.danger        { border-color: rgba(227,74,74,0.33); color: #d07070; }
+.btn.danger:hover  { background: rgba(227,74,74,0.12); border-color: var(--danger); color: #e09090; }
 .btn.small         { padding: 0.3rem 0.65rem; font-size: 0.8rem; }
 
 /* ---- ROLE BADGE ---- */
 .role-badge {
-  display: inline-block;
-  padding: 0.15rem 0.55rem;
-  border-radius: 4px;
-  font-size: 0.7rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 11px;
+  border-radius: 999px;
+  font-family: var(--font-ui);
+  font-size: 11px;
   font-weight: 700;
   color: #fff;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  min-width: 46px;
-  text-align: center;
+  letter-spacing: 0.1em;
   flex-shrink: 0;
 }
+.role-badge--tank { background: linear-gradient(135deg, #3b6cd9, rgba(59,108,217,0.8)); box-shadow: 0 0 0 1px rgba(59,108,217,0.33), 0 2px 6px rgba(59,108,217,0.2); }
+.role-badge--heal { background: linear-gradient(135deg, #3cc977, rgba(60,201,119,0.8)); box-shadow: 0 0 0 1px rgba(60,201,119,0.33), 0 2px 6px rgba(60,201,119,0.2); }
+.role-badge--dps  { background: linear-gradient(135deg, #e34a4a, rgba(227,74,74,0.8)); box-shadow: 0 0 0 1px rgba(227,74,74,0.33), 0 2px 6px rgba(227,74,74,0.2); }
+.role-badge.sm { padding: 3px 8px; font-size: 10px; }
+.role-badge.lg { padding: 7px 14px; font-size: 13px; }
 
-/* ---- CLASS CHIP ---- */
+/* ---- CLASS CHIP (legacy inline chip) ---- */
 .class-chip {
   font-size: 0.75rem;
   padding: 0.1rem 0.45rem;
   background: rgba(255,255,255,0.05);
   border-radius: 3px;
   white-space: nowrap;
+}
+
+/* ---- AVATAR ---- */
+.avatar {
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-ui);
+  font-weight: 800;
+  flex-shrink: 0;
+  position: relative;
+  overflow: visible;
+}
+.avatar--22 { width: 22px; height: 22px; font-size: 10px; }
+.avatar--28 { width: 28px; height: 28px; font-size: 12px; }
+.avatar--32 { width: 32px; height: 32px; font-size: 13px; }
+.avatar--36 { width: 36px; height: 36px; font-size: 14px; }
+.avatar--40 { width: 40px; height: 40px; font-size: 16px; }
+.avatar--48 { width: 48px; height: 48px; font-size: 18px; }
+.avatar--70 { width: 70px; height: 70px; font-size: 26px; }
+
+/* ---- CLASS PILL (idle player toggle) ---- */
+.class-pill {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 14px 8px 8px;
+  border-radius: 999px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
+  text-align: left;
+}
+.class-pill:hover:not(.class-pill--on) { border-color: var(--border-bright); }
+.class-pill--on { border-color: var(--class-color, var(--keystone)); }
+.class-pill__name {
+  font-family: var(--font-ui);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.1;
+  display: block;
+}
+.class-pill__classes {
+  font-size: 10px;
+  font-family: var(--font-mono);
+  letter-spacing: 0.05em;
+  margin-top: 2px;
+  display: block;
+}
+
+/* ---- SPEC CHIP (setup screen) ---- */
+.spec-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 11px;
+  border-radius: 999px;
+  font-family: var(--font-ui);
+  font-size: 12px;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-mute);
+  font-weight: 400;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s, color 0.15s;
+}
+.spec-chip:hover { border-color: var(--role-color, var(--border-bright)); }
+.spec-chip--on {
+  background: rgba(var(--role-color-rgb, 168,107,255), 0.125);
+  border-color: var(--role-color, var(--keystone));
+  color: var(--text);
+  font-weight: 600;
+}
+.spec-chip__dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  border: 1px solid var(--text-mute);
+  flex-shrink: 0;
+}
+.spec-chip--on .spec-chip__dot {
+  background: var(--role-color, var(--keystone));
+  border: none;
+}
+.spec-chip__role {
+  font-size: 8px;
+  font-family: var(--font-mono);
+  letter-spacing: 0.1em;
+  margin-left: 2px;
+  color: var(--text-mute);
+}
+.spec-chip--on .spec-chip__role {
+  color: var(--role-color, var(--keystone));
+}
+
+/* ---- DUNGEON CODE CHIP ---- */
+.dungeon-code {
+  display: inline-block;
+  font-size: 11px;
+  font-family: var(--font-mono);
+  padding: 4px 9px;
+  border-radius: 999px;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s, color 0.15s;
+  white-space: nowrap;
+}
+.dungeon-code:hover { border-color: var(--keystone); color: var(--text); }
+.dungeon-code--selected {
+  background: rgba(168,107,255,0.19);
+  border-color: var(--keystone);
+  color: var(--text);
+  font-weight: 700;
 }
 
 /* ---- PLAYER TOGGLES (RANDOMIZE) ---- */
@@ -291,88 +538,418 @@ footer {
 }
 .slot-player.settled { animation: slot-settle 0.25s ease; }
 
-/* ---- KEY SELECTION ---- */
-.key-section-desc { color: var(--text-dim); font-size: 0.85rem; margin-bottom: 1rem; }
-.key-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
-  gap: 1rem;
-  margin-bottom: 1.25rem;
-}
-.key-player { background: var(--bg2); border: 1px solid var(--border); border-radius: 8px; padding: 0.9rem 1rem; }
-.key-player-name { font-weight: 700; font-size: 0.95rem; margin-bottom: 0.6rem; }
-.key-checkboxes { display: flex; flex-direction: column; gap: 0.2rem; }
-.key-label {
+/* ---- PHASE TAG ---- */
+.phase-tag {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--keystone);
+  letter-spacing: 0.25em;
+  margin-bottom: 20px;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  cursor: pointer;
-  font-size: 0.82rem;
-  color: var(--text-dim);
-  padding: 0.4rem 0;
-  transition: color 0.1s;
+  gap: 14px;
 }
-.key-label:hover { color: var(--text); }
-.key-label input[type="checkbox"] { accent-color: var(--gold); flex-shrink: 0; }
-.key-label input:checked + span { color: var(--text); }
+.phase-tag::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(to right, var(--keystone-glow), transparent);
+}
 
-/* ---- DUNGEON REVEAL ---- */
-.dungeon-reveal { margin: 1.5rem 0 1.25rem; }
-.dungeon-label  { color: var(--text-dim); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 0.4rem; }
-.dungeon-name   {
-  font-size: 2rem;
-  font-weight: 700;
-  color: var(--gold);
-  text-shadow: 0 0 12px rgba(255,209,0,0.3);
-  min-height: 2.5rem;
-  transition: text-shadow 0.3s;
-}
-@keyframes glow-pulse {
-  0%   { text-shadow: 0 0 5px rgba(255,209,0,0.2); }
-  40%  { text-shadow: 0 0 50px rgba(255,209,0,1), 0 0 100px rgba(255,209,0,0.4); }
-  100% { text-shadow: 0 0 20px rgba(255,209,0,0.5); }
-}
-.dungeon-name.glow { animation: glow-pulse 0.8s ease forwards; }
-
-/* ---- SETUP VIEW ---- */
-.setup-list { margin-bottom: 1.5rem; }
-.player-card {
-  background: var(--bg2);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 0.85rem 1rem;
-  margin-bottom: 0.5rem;
+/* ---- KEYSTONES SCREEN ---- */
+.keystones-layout {
   display: flex;
-  align-items: center;
-  gap: 0.75rem;
+  gap: 20px;
+  align-items: flex-start;
   flex-wrap: wrap;
 }
-.player-card.editing { align-items: flex-start; flex-direction: column; }
-.card-name    { font-weight: 600; min-width: 90px; }
-.card-classes { display: flex; flex-wrap: wrap; gap: 4px; flex: 1; }
-.card-actions { display: flex; gap: 0.4rem; margin-left: auto; flex-shrink: 0; }
+.keystones-left  { flex: 1 1 600px; }
+.keystones-right { flex: 0 0 220px; min-width: 200px; }
 
-.add-player-form {
-  background: var(--bg2);
+.key-player-rows { display: flex; flex-direction: column; gap: 10px; margin-bottom: 12px; }
+.key-player-row {
+  display: grid;
+  grid-template-columns: 36px 110px 1fr auto;
+  gap: 12px;
+  align-items: center;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 14px;
+  transition: border-color 0.15s;
+}
+.key-player-row.has-key { border-color: var(--border-bright); }
+.key-player-info { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.key-player-name-text { font-size: 13px; font-weight: 700; line-height: 1.1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.key-player-spec-line { font-size: 10px; font-family: var(--font-mono); color: var(--text-dim); letter-spacing: 0.05em; white-space: nowrap; }
+.key-dungeons { display: flex; flex-wrap: wrap; gap: 5px; }
+.key-level-area {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-shrink: 0;
+  justify-content: flex-end;
+}
+.key-level-btn {
+  background: var(--bg-raised);
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  width: 22px; height: 22px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+  display: flex; align-items: center; justify-content: center;
+  transition: border-color 0.15s, color 0.15s;
+  flex-shrink: 0;
+  user-select: none;
+}
+.key-level-btn:hover { border-color: var(--keystone); color: var(--text); }
+.no-key-label { font-size: 10px; font-family: var(--font-mono); color: var(--text-mute); letter-spacing: 0.1em; white-space: nowrap; }
+.key-tip {
+  font-size: 11px;
+  font-family: var(--font-mono);
+  color: var(--text-mute);
+  letter-spacing: 0.02em;
+  padding: 8px 2px;
+  line-height: 1.6;
+}
+
+/* Odds panel */
+.odds-panel {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.odds-header-label {
+  font-size: 9px;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  color: var(--text-mute);
+  letter-spacing: 0.2em;
+}
+.odds-count {
+  font-size: 22px;
+  font-family: var(--font-mono);
+  font-weight: 500;
+  color: var(--text);
+  line-height: 1;
+}
+.odds-count-dim { font-size: 16px; color: var(--text-mute); }
+.odds-dungeon-list { display: flex; flex-direction: column; gap: 8px; flex: 1; }
+.odds-dungeon-row { display: flex; flex-direction: column; gap: 3px; }
+.odds-dungeon-meta { display: flex; justify-content: space-between; align-items: baseline; }
+.odds-dungeon-name { font-size: 11px; color: var(--text); }
+.odds-dungeon-pct  { font-size: 10px; font-family: var(--font-mono); color: var(--keystone); }
+.odds-bar-track { height: 4px; background: var(--bg-raised); border-radius: 2px; overflow: hidden; }
+.odds-bar-fill  { height: 100%; background: var(--keystone); border-radius: 2px; transition: width 0.3s ease; }
+.odds-empty { font-size: 11px; font-family: var(--font-mono); color: var(--text-mute); }
+
+/* mobile: stack at narrow width */
+@media (max-width: 700px) {
+  .key-player-row { grid-template-columns: 32px 1fr; grid-template-rows: auto auto auto; }
+  .key-level-area { grid-column: 2; }
+  .key-dungeons   { grid-column: 1 / -1; }
+  .keystones-right { flex: 1 1 100%; }
+}
+
+/* ---- FINAL REVEAL (Tonight's Path) ---- */
+.final-layout {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+.final-dungeon-card {
+  flex: 1 1 320px;
+  background: linear-gradient(180deg, var(--bg-surface) 0%, var(--bg) 100%);
+  border: 1px solid var(--gold);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 0 40px var(--gold-glow);
+}
+.dungeon-art-placeholder {
+  height: 140px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-bottom: 1px dashed rgba(255,201,77,0.3);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  color: rgba(255,201,77,0.3);
+  user-select: none;
+}
+.dungeon-card-body { padding: 20px 20px 16px; }
+.dungeon-kicker {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  color: rgba(255,201,77,0.7);
+  letter-spacing: 0.22em;
+  margin-bottom: 10px;
+}
+.dungeon-reveal-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+.dungeon-name {
+  font-family: var(--font-display);
+  font-size: 2.375rem;
+  font-weight: 800;
+  color: var(--gold);
+  letter-spacing: 0.02em;
+  text-shadow: 0 0 30px var(--gold-glow);
+  min-height: 3rem;
+  line-height: 1.1;
+}
+@keyframes glow-pulse {
+  0%   { text-shadow: 0 0 5px rgba(255,201,77,0.2); }
+  40%  { text-shadow: 0 0 50px rgba(255,201,77,1), 0 0 100px rgba(255,201,77,0.4); }
+  100% { text-shadow: 0 0 30px var(--gold-glow); }
+}
+.dungeon-name.glow { animation: glow-pulse 0.8s ease forwards; }
+.dungeon-bottom-strip {
+  border-top: 1px solid rgba(255,201,77,0.18);
+  padding-top: 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.key-holder-line {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12px;
+  color: var(--text-dim);
+}
+.affix-tags { display: flex; gap: 6px; flex-wrap: wrap; }
+.affix-tag {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: var(--bg-raised);
+  border: 1px solid var(--border-bright);
+  color: var(--text-dim);
+  letter-spacing: 0.05em;
+}
+.final-party {
+  flex: 0 0 280px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+.final-party-label {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  color: var(--text-mute);
+  margin-bottom: 4px;
+}
+.final-party-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-left-width: 3px;
+  border-radius: 8px;
+  padding: 8px 12px;
+}
+.final-party-info { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.final-party-name { font-size: 13px; font-weight: 700; line-height: 1.1; }
+.final-party-spec { font-size: 10px; font-family: var(--font-mono); color: var(--text-dim); }
+.comp-readout {
+  background: var(--bg-surface);
   border: 1px solid var(--border);
   border-radius: 8px;
-  padding: 1.25rem;
-  margin-top: 1rem;
+  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  font-size: 12px;
+  color: var(--text-dim);
+  margin-bottom: 20px;
 }
-.add-player-form h3 { color: var(--text); font-size: 0.95rem; margin-bottom: 1rem; }
+.comp-readout-label {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  color: var(--text-mute);
+  margin-right: 4px;
+}
+.comp-stat { color: var(--text); font-weight: 600; }
+.comp-sep { color: var(--border-bright); margin: 0 2px; }
+.final-actions { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+@media (max-width: 700px) {
+  .final-layout  { flex-direction: column; }
+  .final-party   { flex: 1 1 100%; }
+  .dungeon-name  { font-size: 1.75rem; }
+}
+
+/* ---- ROSTER (SETUP) ---- */
+.roster-layout {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+.roster-rail {
+  flex: 0 0 200px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.roster-player-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  border-left: 3px solid transparent;
+  cursor: pointer;
+  transition: background 0.12s;
+}
+.roster-player-row:hover { background: var(--bg-surface); }
+.roster-player-meta { flex: 1; min-width: 0; }
+.roster-player-name { font-size: 13px; font-weight: 700; line-height: 1.1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.roster-player-classes { font-size: 10px; font-family: var(--font-mono); color: var(--text-dim); margin-top: 1px; }
+.roster-player-chevron { color: var(--keystone); font-size: 18px; flex-shrink: 0; line-height: 1; }
+.roster-add-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  margin-top: 6px;
+  border-radius: 8px;
+  border: 1px dashed var(--border);
+  background: transparent;
+  color: var(--text-dim);
+  font-family: var(--font-ui);
+  font-size: 12px;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+  width: 100%;
+  text-align: left;
+}
+.roster-add-btn:hover { border-color: var(--keystone); color: var(--keystone); }
+.roster-panel { flex: 1; min-width: 0; }
+.roster-panel-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 180px;
+  color: var(--text-mute);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  border: 1px dashed var(--border);
+  border-radius: 10px;
+}
+.roster-panel-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 16px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--border);
+}
+.roster-panel-meta { flex: 1; min-width: 0; }
+.roster-name-row { display: flex; align-items: center; gap: 8px; }
+.roster-panel-name-input {
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+  font-family: var(--font-display);
+  font-size: 1.375rem;
+  font-weight: 700;
+  padding: 2px 0;
+  min-width: 0;
+  flex: 1;
+  max-width: 200px;
+  transition: border-color 0.15s;
+}
+.roster-panel-name-input:focus { outline: none; border-bottom-color: var(--keystone); }
+.roster-panel-spec-count { font-family: var(--font-mono); font-size: 10px; color: var(--text-mute); letter-spacing: 0.1em; margin-top: 4px; }
+.class-card {
+  border-radius: 8px;
+  border-left: 3px solid var(--border);
+  background: var(--bg-raised);
+  padding: 10px 14px;
+  margin-bottom: 8px;
+}
+.class-card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 5px; }
+.class-card-name { font-family: var(--font-display); font-size: 1rem; font-weight: 700; }
+.class-card-right { display: flex; align-items: center; gap: 8px; }
+.class-card-counter { font-family: var(--font-mono); font-size: 10px; color: var(--text-mute); }
+.class-card-dots { display: flex; gap: 3px; margin-bottom: 8px; }
+.class-dot { width: 5px; height: 5px; border-radius: 50%; }
+.spec-chips-row { display: flex; flex-wrap: wrap; gap: 6px; }
+.add-class-section { margin-top: 8px; }
+.add-class-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: 1px dashed var(--border);
+  background: transparent;
+  color: var(--text-dim);
+  font-family: var(--font-ui);
+  font-size: 12px;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+}
+.add-class-trigger:hover { border-color: var(--keystone); color: var(--keystone); }
+.add-class-picker { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.add-class-chip {
+  padding: 5px 10px;
+  border-radius: 6px;
+  background: var(--bg-raised);
+  border: 1px solid var(--border);
+  font-family: var(--font-ui);
+  font-size: 12px;
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+.add-class-chip:hover { border-color: var(--keystone); }
+
+/* Add-player form (reused in panel) */
+.add-player-form {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1.25rem;
+}
+.add-player-form h3 { font-family: var(--font-display); color: var(--text); font-size: 1rem; margin-bottom: 1rem; letter-spacing: 0.05em; }
 .form-group { margin-bottom: 0.9rem; }
-.form-group label { display: block; font-size: 0.82rem; color: var(--text-dim); margin-bottom: 0.4rem; text-transform: uppercase; letter-spacing: 0.05em; }
+.form-group label { display: block; font-size: 0.82rem; color: var(--text-dim); margin-bottom: 0.4rem; text-transform: uppercase; letter-spacing: 0.05em; font-family: var(--font-mono); }
 .form-group input[type="text"] {
-  background: var(--bg3);
+  background: var(--bg-raised);
   border: 1px solid var(--border);
   border-radius: 5px;
   color: var(--text);
+  font-family: var(--font-ui);
   font-size: 0.95rem;
   padding: 0.55rem 0.8rem;
   width: 100%;
   max-width: 300px;
 }
-.form-group input[type="text"]:focus { outline: none; border-color: var(--gold-dim); }
+.form-group input[type="text"]:focus { outline: none; border-color: var(--keystone-dim); }
 .class-checkboxes {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(145px, 1fr));
@@ -389,7 +966,12 @@ footer {
   transition: background 0.1s;
 }
 .class-check-label:hover { background: rgba(255,255,255,0.04); }
-.class-check-label input[type="checkbox"] { accent-color: var(--gold); flex-shrink: 0; }
+.class-check-label input[type="checkbox"] { accent-color: var(--keystone); flex-shrink: 0; }
+@media (max-width: 700px) {
+  .roster-layout { flex-direction: column; }
+  .roster-rail    { flex: 1 1 100%; flex-direction: row; flex-wrap: wrap; gap: 4px; }
+  .roster-player-row { flex: 0 0 calc(50% - 2px); }
+}
 
 .save-indicator {
   position: fixed;
@@ -449,18 +1031,21 @@ footer {
 
 /* ---- SUBMIT BUTTON ---- */
 #pw-submit {
-  background: linear-gradient(135deg, #ffd100, #c8a200);
-  color: #0a0a0f;
+  background: linear-gradient(135deg, var(--keystone), var(--keystone-dim));
+  color: #fff;
   border: none;
   padding: 0.75rem 1.5rem;
-  font-size: 1rem;
+  font-family: var(--font-display);
+  font-size: 0.9rem;
   font-weight: 700;
+  letter-spacing: 0.12em;
   border-radius: 6px;
   cursor: pointer;
   width: 100%;
   transition: box-shadow 0.15s;
+  box-shadow: 0 0 18px var(--keystone-glow);
 }
-#pw-submit:hover { box-shadow: 0 0 20px rgba(255,209,0,0.3); }
+#pw-submit:hover { box-shadow: 0 0 28px rgba(168,107,255,0.5); }
 
 /* ---- SPEC GROUPS (SETUP) ---- */
 .spec-groups {
@@ -504,34 +1089,30 @@ footer {
 /* target html so rem units scale throughout */
 @media (min-width: 1440px) {
   html { font-size: 20px; }
-  .view-content { max-width: 1500px; }
+  .view-content { max-width: 1300px; }
 }
 @media (min-width: 1920px) {
   html { font-size: 23px; }
-  .view-content { max-width: 1800px; }
+  .view-content { max-width: 1500px; }
 }
 
 /* ---- RESPONSIVE ---- */
 @media (max-width: 700px) {
   header { padding: 0.6rem 1rem; gap: 0.5rem; }
-  header h1 { font-size: 1rem; }
-  .tab { padding: 0.35rem 0.6rem; font-size: 0.82rem; }
+  .tab { padding: 0.35rem 0.6rem; font-size: 0.75rem; }
   .view-content { padding: 1rem 0.9rem; }
-  .key-grid { grid-template-columns: 1fr 1fr; }
   .slot { flex-wrap: wrap; }
   .dungeon-name { font-size: 1.5rem; }
   .big-btn { padding: 0.75rem 1.5rem; font-size: 1rem; }
   .stats-grid { grid-template-columns: 1fr; }
 }
 @media (max-width: 430px) {
-  .key-grid { grid-template-columns: 1fr; }
   .player-toggle { width: 100%; }
-  header h1 { display: none; }
-  .roll-key-sticky { position: sticky; bottom: 1rem; padding: 0.5rem 0; background: var(--bg); }
+  .spec-chip__role { display: none; }
 }
 
 /* ---- FOCUS RING ---- */
-:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
+:focus-visible { outline: 2px solid var(--keystone); outline-offset: 3px; }
 
 /* ---- ACTIVE COUNT WARNING ---- */
 @keyframes flash-warn {
@@ -563,13 +1144,30 @@ footer {
 <!-- Main app -->
 <div id="app" hidden>
   <header>
-    <h1>⚔️ WoW M+ Randomizer</h1>
+    <div class="header-brand">
+      <svg width="28" height="28" viewBox="0 0 60 60" aria-hidden="true">
+        <defs>
+          <linearGradient id="hkgr" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#a86bff" stop-opacity="1"/>
+            <stop offset="100%" stop-color="#a86bff" stop-opacity="0.4"/>
+          </linearGradient>
+        </defs>
+        <polygon points="30,4 52,17 52,43 30,56 8,43 8,17" fill="url(#hkgr)" stroke="#a86bff" stroke-width="1.5" opacity="0.95"/>
+        <polygon points="30,12 45,21 45,39 30,48 15,39 15,21" fill="none" stroke="#a86bff" stroke-width="0.8" opacity="0.6"/>
+      </svg>
+      <div class="header-wordmark">
+        <span class="wordmark-text">WoWRND</span>
+        <span class="season-pill" id="season-pill"></span>
+      </div>
+    </div>
     <nav id="nav">
-      <button class="tab active" data-view="randomize">🎲 Randomize</button>
-      <button class="tab"        data-view="setup">⚙️ Setup</button>
-      <button class="tab"        data-view="history">📜 History</button>
+      <button class="tab active" data-view="randomize"><span class="tab-glyph">◇</span> Randomize</button>
+      <button class="tab"        data-view="setup"><span class="tab-glyph">◈</span> Roster</button>
+      <button class="tab"        data-view="history"><span class="tab-glyph">◆</span> Chronicle</button>
     </nav>
-    <button class="mute-btn" id="mute-btn" title="Toggle sound">🔊</button>
+    <div class="header-right">
+      <button class="mute-btn" id="mute-btn" title="Toggle sound">🔊</button>
+    </div>
   </header>
 
   <main id="main"></main>
@@ -677,8 +1275,41 @@ const CLASS_COLORS = {
   'Warrior':      '#c69b6d',
 };
 
-const ROLE_COLORS = { TANK: '#2a4d8a', HEAL: '#2a8a4d', DPS: '#8a2a2a' };
+const ROLE_COLORS = { TANK: '#3b6cd9', HEAL: '#3cc977', DPS: '#e34a4a' };
 const ROLE_LABELS = { TANK: 'Tank', HEAL: 'Heal', DPS: 'DPS' };
+const ROLE_GLYPHS = { TANK: '🛡', HEAL: '✚', DPS: '⚔' };
+
+const DUNGEON_CODES = {
+  "Windrunner Spire":        "WS",
+  "Maisara Caverns":         "MC",
+  "Magisters' Terrace":      "MT",
+  "Nexus-Point Xenas":       "NPX",
+  "Algeth'ar Academy":       "AA",
+  "Seat of the Triumvirate": "ST",
+  "Skyreach":                "SR",
+  "Pit of Saron":            "PoS",
+};
+
+const WEEKLY_AFFIXES = ["Tyrannical", "Xal'atath's Bargain", "Xal'atath's Guile"];
+const SEASON_LABEL   = "MIDNIGHT · S1 · WEEK 9";
+
+// Comp analysis constants
+const LUST_CLASSES = new Set(['Shaman', 'Mage', 'Hunter', 'Evoker', 'Monk']);
+const BREZ_CLASSES = new Set(['Druid', 'Demon Hunter', 'Warlock', 'Death Knight']);
+// Specs without a reliable hard interrupt — "Class/Spec" format
+const NO_INTERRUPT_SPECS = new Set(['Priest/Holy']);
+// Melee specs — everything else is treated as ranged
+const MELEE_SPECS = new Set([
+  'Death Knight/Blood',   'Death Knight/Frost',   'Death Knight/Unholy',
+  'Demon Hunter/Havoc',   'Demon Hunter/Vengeance','Demon Hunter/Devourer',
+  'Druid/Feral',          'Druid/Guardian',
+  'Hunter/Survival',
+  'Monk/Brewmaster',      'Monk/Windwalker',
+  'Paladin/Holy',         'Paladin/Protection',    'Paladin/Retribution',
+  'Rogue/Assassination',  'Rogue/Outlaw',          'Rogue/Subtlety',
+  'Shaman/Enhancement',
+  'Warrior/Arms',         'Warrior/Fury',          'Warrior/Protection',
+]);
 
 const API_URL = '/.netlify/functions/state';
 
@@ -718,10 +1349,59 @@ function classColor(cls) {
   return CLASS_COLORS[cls] || '#cccccc';
 }
 
-function roleBadge(role) {
-  const bg    = ROLE_COLORS[role]  || '#444';
+function roleBadge(role, size) {
+  const cls   = role === 'TANK' ? 'role-badge--tank' : role === 'HEAL' ? 'role-badge--heal' : 'role-badge--dps';
+  const glyph = ROLE_GLYPHS[role] || '';
   const label = ROLE_LABELS[role] || role;
-  return `<span class="role-badge" style="background:${bg}">${esc(label)}</span>`;
+  const szCls = size === 'sm' ? ' sm' : size === 'lg' ? ' lg' : '';
+  return `<span class="role-badge ${cls}${szCls}">${glyph} ${esc(label)}</span>`;
+}
+
+function keystoneShard(size, level, color) {
+  const c  = color || '#a86bff';
+  const id = 'ks' + Math.random().toString(36).slice(2, 7);
+  const glowSize = Math.round(size / 4);
+  const levelText = level != null
+    ? `<text x="30" y="37" text-anchor="middle" fill="white"
+         font-family="JetBrains Mono,monospace" font-size="18" font-weight="800"
+         style="text-shadow:0 0 6px rgba(0,0,0,0.6)">+${esc(String(level))}</text>`
+    : '';
+  return `<svg width="${size}" height="${size}" viewBox="0 0 60 60"
+    style="display:inline-block;vertical-align:middle;filter:drop-shadow(0 0 ${glowSize}px ${c}aa)"
+    aria-hidden="true">
+    <defs>
+      <linearGradient id="${id}" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%" stop-color="${c}" stop-opacity="1"/>
+        <stop offset="100%" stop-color="${c}" stop-opacity="0.4"/>
+      </linearGradient>
+    </defs>
+    <polygon points="30,4 52,17 52,43 30,56 8,43 8,17"
+             fill="url(#${id})" stroke="${c}" stroke-width="1.5" opacity="0.95"/>
+    <polygon points="30,12 45,21 45,39 30,48 15,39 15,21"
+             fill="none" stroke="${c}" stroke-width="0.8" opacity="0.6"/>
+    ${levelText}
+  </svg>`;
+}
+
+function playerAvatar(size, name, cls) {
+  const color = classColor(cls);
+  const initial = esc((name || '?')[0].toUpperCase());
+  return `<div class="avatar avatar--${size}"
+    style="background:linear-gradient(135deg,${color},${color}88);color:#0b0916;
+           box-shadow:0 0 0 2px var(--bg),0 0 0 3px ${color}66">${initial}</div>`;
+}
+
+function computeComp(assignments) {
+  let interrupts = 0, lust = null, melee = 0, ranged = 0;
+  const brezProviders = [];
+  for (const a of assignments) {
+    const key = `${a.class}/${a.spec}`;
+    if (!NO_INTERRUPT_SPECS.has(key))   interrupts++;
+    if (LUST_CLASSES.has(a.class) && !lust) lust = a.class;
+    if (BREZ_CLASSES.has(a.class))      brezProviders.push(a.class);
+    if (MELEE_SPECS.has(key)) melee++; else ranged++;
+  }
+  return { interrupts, lust, brez: brezProviders, melee, ranged };
 }
 
 // ==================== APP STATE ====================
@@ -734,12 +1414,20 @@ let rPhase         = 'idle';       // idle | revealing | key-entry | done
 let rAssignments   = [];
 let rDungeon       = '';
 let rKeyPool       = [];
+let rKeyInputs     = {};           // { [playerId]: { dungeon: string|null, level: number } }
+let rKeyHolder     = null;         // player name who holds the rolled key
+let rKeyLevel      = null;         // numeric key level of the rolled dungeon
+let rerollCount    = 0;
 let isAnimating    = false;
 let muted          = sessionStorage.getItem('wow_muted') === 'true';
 let audioCtx            = null;
 let skipReveal          = false;
 let clearHistoryPending = false;
 let clearHistoryTimer   = null;
+let setupSelectedPlayerId = null;  // player ID | '__add__' | null
+let setupAddingClass      = false;
+let removeConfirmId       = null;
+let removeConfirmTimer    = null;
 
 // ==================== API ====================
 
@@ -886,6 +1574,11 @@ function render() {
 
 function showView(view) {
   activeView = view;
+  if (view !== 'setup') {
+    clearTimeout(removeConfirmTimer);
+    removeConfirmId  = null;
+    setupAddingClass = false;
+  }
   document.querySelectorAll('.tab').forEach(btn =>
     btn.classList.toggle('active', btn.dataset.view === view)
   );
@@ -972,69 +1665,176 @@ function renderRandomize() {
     h += '</section>';
   }
 
-  // Section: key selection
+  // Section: keystones (key entry)
   if (rPhase === 'key-entry') {
     h += '<section class="section" id="key-section">';
-    h += '<h2 class="section-title">🗝️ Keys Available</h2>';
-    h += `<p class="key-section-desc">Check dungeons each player has a key for. Duplicates raise that dungeon's odds.</p>`;
-    h += '<div class="key-grid">';
+    h += '<div class="phase-tag">III · KEYSTONES</div>';
+    h += '<div class="keystones-layout">';
+
+    // ---- Left column: player rows ----
+    h += '<div class="keystones-left">';
+    h += '<div class="key-player-rows">';
     for (const a of rAssignments) {
-      h += `<div class="key-player">
-              <div class="key-player-name" style="color:${classColor(a.class)}">${esc(a.playerName)}</div>
-              <div class="key-checkboxes">`;
-      for (const d of SEASON_DUNGEONS) {
-        const cbId = `kc-${esc(a.playerId)}-${d.replace(/[^a-z0-9]/gi, '_')}`;
-        h += `<label class="key-label">
-                <input type="checkbox" class="key-cb"
-                  id="${cbId}"
-                  data-player="${esc(a.playerId)}"
-                  data-dungeon="${esc(d)}">
-                <span>${esc(d)}</span>
-              </label>`;
+      const ki       = rKeyInputs[a.playerId] || { dungeon: null, level: 8 };
+      const hasDungeon = ki.dungeon != null;
+      h += `<div class="key-player-row${hasDungeon ? ' has-key' : ''}">`;
+
+      // Avatar
+      h += playerAvatar(32, a.playerName, a.class);
+
+      // Name + spec caption
+      h += `<div class="key-player-info">
+        <span class="key-player-name-text" style="color:${classColor(a.class)}">${esc(a.playerName)}</span>
+        <span class="key-player-spec-line">${esc(a.spec)} · ${esc(a.class)}</span>
+      </div>`;
+
+      // Dungeon code chips
+      h += '<div class="key-dungeons">';
+      for (const [dName, dCode] of Object.entries(DUNGEON_CODES)) {
+        const sel = ki.dungeon === dName;
+        h += `<button class="dungeon-code${sel ? ' dungeon-code--selected' : ''}"
+          onclick="setPlayerDungeon('${esc(a.playerId)}','${esc(dName)}')">${esc(dCode)}</button>`;
       }
-      h += `  </div>
-            </div>`;
+      h += '</div>';
+
+      // Key level area
+      h += '<div class="key-level-area">';
+      if (hasDungeon) {
+        const lvl = ki.level || 8;
+        h += `<button class="key-level-btn" onclick="setPlayerLevel('${esc(a.playerId)}',-1)">−</button>`;
+        h += keystoneShard(36, lvl, '#a86bff');
+        h += `<button class="key-level-btn" onclick="setPlayerLevel('${esc(a.playerId)}',1)">+</button>`;
+      } else {
+        h += '<span class="no-key-label">NO KEY</span>';
+      }
+      h += '</div>';
+
+      h += '</div>'; // key-player-row
     }
-    h += '</div>';
-    h += `<div class="roll-key-sticky">
-            <button class="big-btn" id="roll-key-btn" disabled onclick="handleRollKey()">🗝️ ROLL KEY</button>
-          </div>`;
+    h += '</div>'; // key-player-rows
+    h += `<p class="key-tip">Tip — Click a dungeon code, set the key level. If nobody has a key, we'll roll from the full season pool.</p>`;
+    h += '</div>'; // keystones-left
+
+    // ---- Right column: odds preview ----
+    h += '<div class="keystones-right"><div class="odds-panel">';
+    h += '<div class="odds-header-label">ODDS PREVIEW</div>';
+
+    const keyed  = rAssignments.filter(a => rKeyInputs[a.playerId]?.dungeon);
+    const keyCount = keyed.length;
+    h += `<div class="odds-count">${keyCount} <span class="odds-count-dim">/ 5 keys</span></div>`;
+
+    if (keyCount > 0) {
+      const tallied = {};
+      for (const a of keyed) tallied[rKeyInputs[a.playerId].dungeon] = (tallied[rKeyInputs[a.playerId].dungeon] || 0) + 1;
+      const sorted = Object.entries(tallied).sort((a, b) => b[1] - a[1]);
+      h += '<div class="odds-dungeon-list">';
+      for (const [dname, cnt] of sorted) {
+        const pct = Math.round((cnt / keyCount) * 100);
+        h += `<div class="odds-dungeon-row">
+          <div class="odds-dungeon-meta">
+            <span class="odds-dungeon-name">${esc(dname)}</span>
+            <span class="odds-dungeon-pct">${pct}%</span>
+          </div>
+          <div class="odds-bar-track"><div class="odds-bar-fill" style="width:${pct}%"></div></div>
+        </div>`;
+      }
+      h += '</div>';
+    } else {
+      h += '<span class="odds-empty">Full season pool</span>';
+    }
+
+    h += `<button class="btn-primary" style="width:100%;justify-content:center" onclick="handleRollKey()">◆ ROLL THE KEY ◆</button>`;
+    h += '</div></div>'; // odds-panel + keystones-right
+
+    h += '</div>'; // keystones-layout
     h += '</section>';
   }
 
-  // Section: final result
+  // Section: final result (Tonight's Path)
   if (rPhase === 'done') {
-    h += `<section class="section center" id="final-section">
-            <div class="dungeon-reveal">
-              <div class="dungeon-label">Tonight's Dungeon</div>
-              <div class="dungeon-name" id="dungeon-name-display">${esc(rDungeon)}</div>
-            </div>
-            <div style="display:flex;gap:0.75rem;justify-content:center;flex-wrap:wrap;margin-top:1rem">
-              <button class="big-btn" id="copy-result-btn" onclick="copyResult()">📋 Copy for Discord</button>
-              <button class="big-btn secondary" onclick="resetRandomize()">🔄 Randomize Again</button>
-            </div>
-          </section>`;
+    const comp = computeComp(rAssignments);
+    h += '<section class="section" id="final-section">';
+    h += '<div class="phase-tag">IV · TONIGHT\'S PATH</div>';
+    h += '<div class="final-layout">';
+
+    // ---- Left: dungeon card ----
+    h += '<div class="final-dungeon-card">';
+    h += '<div class="dungeon-art-placeholder">DUNGEON ART · DROP HERE</div>';
+    h += '<div class="dungeon-card-body">';
+    h += '<div class="dungeon-kicker">THE KEY OPENS</div>';
+    h += '<div class="dungeon-reveal-row">';
+    h += keystoneShard(42, rKeyLevel, '#ffc94d');
+    h += `<div class="dungeon-name" id="dungeon-name-display">${esc(rDungeon)}</div>`;
+    h += '</div>'; // dungeon-reveal-row
+    h += '<div class="dungeon-bottom-strip">';
+    if (rKeyHolder) {
+      const holderAssign = rAssignments.find(a => a.playerName === rKeyHolder);
+      h += '<div class="key-holder-line">';
+      if (holderAssign) h += playerAvatar(22, rKeyHolder, holderAssign.class);
+      h += `<span>${esc(rKeyHolder)}'s key</span>`;
+      h += '</div>';
+    }
+    if (WEEKLY_AFFIXES.length) {
+      h += '<div class="affix-tags">';
+      for (const affix of WEEKLY_AFFIXES) {
+        h += `<span class="affix-tag">${esc(affix.toUpperCase())}</span>`;
+      }
+      h += '</div>';
+    }
+    h += '</div>'; // dungeon-bottom-strip
+    h += '</div>'; // dungeon-card-body
+    h += '</div>'; // final-dungeon-card
+
+    // ---- Right: party composition ----
+    h += '<div class="final-party">';
+    h += '<div class="final-party-label">YOUR PARTY</div>';
+    for (const a of rAssignments) {
+      const cc = classColor(a.class);
+      h += `<div class="final-party-row" style="border-left-color:${cc}">`;
+      h += roleBadge(a.role, 'sm');
+      h += playerAvatar(28, a.playerName, a.class);
+      h += `<div class="final-party-info">
+        <span class="final-party-name" style="color:${cc}">${esc(a.playerName)}</span>
+        <span class="final-party-spec">${esc(a.spec)} ${esc(a.class)}</span>
+      </div>`;
+      h += '</div>';
+    }
+    h += '</div>'; // final-party
+
+    h += '</div>'; // final-layout
+
+    // ---- Comp readout ----
+    h += '<div class="comp-readout">';
+    h += '<span class="comp-readout-label">COMP</span>';
+    h += `<span>⚡ <span class="comp-stat">${comp.interrupts}</span> interrupts</span>`;
+    h += '<span class="comp-sep">·</span>';
+    if (comp.lust) {
+      h += `<span>🩸 Lust: <span class="comp-stat">yes (${esc(comp.lust)})</span></span>`;
+    } else {
+      h += `<span>🩸 Lust: <span style="color:var(--danger)">no</span></span>`;
+    }
+    h += '<span class="comp-sep">·</span>';
+    if (comp.brez.length) {
+      h += `<span>♻️ BRez: <span class="comp-stat">yes (${comp.brez.map(esc).join(', ')})</span></span>`;
+    } else {
+      h += `<span>♻️ BRez: <span style="color:var(--danger)">no</span></span>`;
+    }
+    h += '<span class="comp-sep">·</span>';
+    h += `<span>Melee <span class="comp-stat">${comp.melee}</span> / Ranged <span class="comp-stat">${comp.ranged}</span></span>`;
+    h += '</div>';
+
+    // ---- Action buttons ----
+    h += '<div class="final-actions">';
+    h += `<button class="btn-secondary" id="copy-result-btn" onclick="copyResult()">📋 COPY TO DISCORD</button>`;
+    h += `<button class="btn-secondary${rerollCount >= 1 ? '" disabled' : '"'} onclick="handleReroll()" style="opacity:${rerollCount >= 1 ? '0.45' : '1'}">↻ RE-ROLL ONE SLOT</button>`;
+    h += `<button class="btn-primary" onclick="resetRandomize()">◇ NEW SESSION</button>`;
+    h += '</div>';
+
+    h += '</section>';
   }
 
   h += '</div>';
   main.innerHTML = h;
-
-  // Wire key checkboxes
-  if (rPhase === 'key-entry') {
-    document.querySelectorAll('.key-cb').forEach(cb =>
-      cb.addEventListener('change', onKeyChange)
-    );
-    updateRollKeyBtn(); // enable button if any pre-filled checkboxes are checked
-  }
-}
-
-function updateRollKeyBtn() {
-  const btn = document.getElementById('roll-key-btn');
-  if (btn) btn.disabled = !document.querySelector('.key-cb:checked');
-}
-
-function onKeyChange() {
-  updateRollKeyBtn();
 }
 
 // ---------- SETUP VIEW ----------
@@ -1043,93 +1843,126 @@ function renderSetup() {
   const main    = document.getElementById('main');
   const players = appState.players;
 
-  let h = '<div class="view-content">';
-  h += '<h2 class="section-title">Roster</h2>';
-
-  h += '<div class="setup-list">';
-  if (players.length === 0) {
-    h += '<p class="notice">No players yet. Add one below.</p>';
-  }
+  let rail = '';
   for (const p of players) {
-    h += playerCardHtml(p, false);
+    const clsList  = Object.keys(p.specs || {});
+    const isSelected = setupSelectedPlayerId === p.id;
+    const color    = clsList.length > 0 ? classColor(clsList[0]) : 'var(--text-dim)';
+    const selStyle = isSelected
+      ? `background:${color}15;border-color:${color};border-left-color:${color};`
+      : '';
+    rail += `<div class="roster-player-row" onclick="selectSetupPlayer('${esc(p.id)}')" style="${selStyle}">
+      ${playerAvatar(28, p.name, clsList[0] || '')}
+      <div class="roster-player-meta">
+        <div class="roster-player-name" style="color:${isSelected ? color : 'var(--text)'}">${esc(p.name)}</div>
+        <div class="roster-player-classes">${clsList.length} CLASS${clsList.length !== 1 ? 'ES' : ''}</div>
+      </div>
+      ${isSelected ? '<div class="roster-player-chevron">›</div>' : ''}
+    </div>`;
   }
-  h += '</div>';
-
   if (players.length < 15) {
-    h += addPlayerFormHtml();
+    const isAdd = setupSelectedPlayerId === '__add__';
+    rail += `<button class="roster-add-btn" onclick="selectSetupPlayer('__add__')"
+      style="${isAdd ? 'border-color:var(--keystone);color:var(--keystone);' : ''}">
+      + Add Player
+    </button>`;
   } else {
-    h += '<p class="notice">Roster full (15 players maximum).</p>';
+    rail += '<p class="notice" style="font-size:11px;margin-top:6px;">Roster full (15 max)</p>';
   }
 
-  h += '</div>';
+  let panel = '';
+  if (!setupSelectedPlayerId) {
+    panel = '<div class="roster-panel-empty">SELECT A PLAYER TO EDIT</div>';
+  } else if (setupSelectedPlayerId === '__add__') {
+    panel = addPlayerFormHtml();
+  } else {
+    const p = players.find(pl => pl.id === setupSelectedPlayerId);
+    if (p) panel = rosterPanelHtml(p);
+    else   panel = '<div class="roster-panel-empty">PLAYER NOT FOUND</div>';
+  }
+
+  const h = `<div class="view-content">
+    <div class="roster-layout">
+      <div class="roster-rail">${rail}</div>
+      <div class="roster-panel">${panel}</div>
+    </div>
+  </div>`;
   main.innerHTML = h;
 }
 
-function playerCardHtml(p, editing) {
-  const id = esc(p.id);
+function rosterPanelHtml(p) {
+  const id       = esc(p.id);
+  const clsList  = Object.keys(p.specs || {});
+  const allSpecs = clsList.reduce((n, c) => n + ((p.specs[c] || []).length), 0);
+  const color    = clsList.length > 0 ? classColor(clsList[0]) : 'var(--text-dim)';
+  const removeLbl = removeConfirmId === p.id ? 'Confirm remove?' : 'Remove';
 
-  if (editing) {
-    return `<div class="player-card editing" id="player-${id}">
-      <div class="form-group">
-        <label>Name</label>
-        <input type="text" id="ename-${id}" value="${esc(p.name)}" maxlength="30" />
-      </div>
-      <div class="form-group">
-        <label>Specs</label>
-        <div class="spec-groups">
-          ${Object.keys(CLASSES).map(cls => {
-            const enabled    = (p.specs || {})[cls] || [];
-            const allChecked = enabled.length === CLASSES[cls].length;
-            return `<div class="spec-group">
-              <label class="class-check-label" style="color:${classColor(cls)};font-weight:600;font-size:0.82rem;border-bottom:1px solid var(--border);padding-bottom:0.2rem;margin-bottom:0.15rem">
-                <input type="checkbox" class="cls-all" onchange="handleClsAll(this)"${allChecked ? ' checked' : ''}>
-                ${esc(cls)}
-              </label>
-              ${CLASSES[cls].map(s =>
-                `<label class="spec-check-label">
-                   <input type="checkbox" class="edit-spec" data-player="${id}" data-class="${esc(cls)}" value="${esc(s.spec)}"${enabled.includes(s.spec) ? ' checked' : ''}>
-                   <span class="spec-label-text">
-                     <span style="color:${classColor(cls)}">${esc(s.spec)}</span>
-                     <span class="spec-role-tag" style="color:${ROLE_COLORS[s.role]}">${esc(ROLE_LABELS[s.role])}</span>
-                   </span>
-                 </label>`
-              ).join('')}
-            </div>`;
-          }).join('')}
+  let classCards = '';
+  for (const cls of clsList) {
+    const cc       = classColor(cls);
+    const enabled  = p.specs[cls] || [];
+    const allCls   = CLASSES[cls] || [];
+    const dots     = allCls.map(s =>
+      `<div class="class-dot" style="background:${enabled.includes(s.spec) ? cc : 'var(--text-mute)'}"></div>`
+    ).join('');
+    const chips    = allCls.map(s => {
+      const on   = enabled.includes(s.spec);
+      const rc   = ROLE_COLORS[s.role] || 'var(--text-dim)';
+      const dot  = `<span class="spec-chip__dot" style="${on ? '--role-color:'+rc : ''}"></span>`;
+      const role = `<span class="spec-chip__role" style="color:${rc}">${esc(ROLE_LABELS[s.role] || s.role)}</span>`;
+      return `<button class="spec-chip${on ? ' spec-chip--on' : ''}"
+        style="${on ? '--role-color:'+rc+';border-color:'+rc+'40' : ''}"
+        onclick="toggleSpec('${id}','${esc(cls)}','${esc(s.spec)}')">${dot}${esc(s.spec)}${role}</button>`;
+    }).join('');
+    classCards += `<div class="class-card" style="border-left-color:${cc}">
+      <div class="class-card-header">
+        <span class="class-card-name" style="color:${cc}">${esc(cls)}</span>
+        <div class="class-card-right">
+          <span class="class-card-counter">${enabled.length} / ${allCls.length}</span>
         </div>
       </div>
-      <div class="form-error" id="eerr-${id}" hidden></div>
-      <div class="card-actions">
-        <button class="btn" onclick="handleSavePlayer('${id}')">Save</button>
-        <button class="btn" onclick="handleCancelEdit('${id}')">Cancel</button>
-      </div>
+      <div class="class-card-dots">${dots}</div>
+      <div class="spec-chips-row">${chips}</div>
     </div>`;
   }
 
-  const chips = Object.keys(p.specs || {}).map(c =>
-    `<span class="class-chip" style="color:${classColor(c)}">${esc(c)}</span>`
-  ).join('');
-
-  const banned = [];
-  for (const [cls, enabledSpecs] of Object.entries(p.specs || {})) {
-    for (const s of CLASSES[cls] || []) {
-      if (!enabledSpecs.includes(s.spec)) banned.push({ spec: s.spec, cls });
+  const addableClasses = Object.keys(CLASSES).filter(c => !clsList.includes(c));
+  let addSection = '';
+  if (addableClasses.length > 0) {
+    if (setupAddingClass) {
+      const chips = addableClasses.map(c =>
+        `<button class="add-class-chip" style="color:${classColor(c)}"
+          onclick="addClassToPlayer('${id}','${esc(c)}')">${esc(c)}</button>`
+      ).join('');
+      addSection = `<div class="add-class-section">
+        <div class="add-class-picker">${chips}</div>
+      </div>`;
+    } else {
+      addSection = `<div class="add-class-section">
+        <button class="add-class-trigger" onclick="setupAddingClass=true;renderSetup()">
+          + Add a class ${esc(p.name)} plays
+        </button>
+      </div>`;
     }
   }
-  const bannedLine = banned.length > 0
-    ? `<div class="card-banned">Banned: ${banned.map(b =>
-        `<span style="color:${classColor(b.cls)}">${esc(b.spec)} ${esc(b.cls)}</span>`
-      ).join(', ')}</div>`
-    : '';
 
-  return `<div class="player-card" id="player-${id}">
-    <span class="card-name">${esc(p.name)}</span>
-    <span class="card-classes">${chips}</span>
-    <div class="card-actions">
-      <button class="btn small" onclick="handleEditPlayer('${id}')">Edit</button>
-      <button class="btn small danger" onclick="handleRemovePlayer('${id}')">Remove</button>
+  return `<div>
+    <div class="roster-panel-header">
+      ${playerAvatar(48, p.name, clsList[0] || '')}
+      <div class="roster-panel-meta">
+        <div class="roster-name-row">
+          <input class="roster-panel-name-input" id="roster-name-${id}" type="text"
+            value="${esc(p.name)}" maxlength="30"
+            onblur="handleSavePlayerName('${id}')"
+            onkeydown="if(event.key==='Enter')this.blur()" />
+        </div>
+        <div class="roster-panel-spec-count">${allSpecs} SPEC${allSpecs !== 1 ? 'S' : ''} ENABLED</div>
+      </div>
+      <button class="btn small danger" id="remove-btn-${id}"
+        onclick="handleRemovePlayer('${id}')">${removeLbl}</button>
     </div>
-    ${bannedLine}
+    ${classCards}
+    ${addSection}
   </div>`;
 }
 
@@ -1138,7 +1971,7 @@ function addPlayerFormHtml() {
     <h3>Add Player</h3>
     <div class="form-group">
       <label>Name</label>
-      <input type="text" id="new-name" maxlength="30" placeholder="Player name" />
+      <input type="text" id="new-name" maxlength="30" placeholder="Player name" autofocus />
     </div>
     <div class="form-group">
       <label>Specs</label>
@@ -1378,24 +2211,84 @@ async function runRevealAnimation(assignments) {
   render();
 }
 
-function handleRollKey() {
-  const checked = [...document.querySelectorAll('.key-cb:checked')];
-  const pool    = checked.map(cb => cb.dataset.dungeon);
+function handleReroll() {
+  if (rerollCount >= 1 || isAnimating) return;
 
-  let dungeon, fromFullPool = false;
-  if (pool.length === 0) {
-    dungeon = pick(SEASON_DUNGEONS);
-    fromFullPool = true;
-  } else {
-    dungeon = pick(pool);
+  // Find first DPS slot
+  const dpsIdx = rAssignments.findIndex(a => a.role === 'DPS');
+  if (dpsIdx < 0) return;
+
+  const a      = rAssignments[dpsIdx];
+  const player = appState.players.find(p => p.id === a.playerId);
+  if (!player) return;
+
+  // Collect all eligible DPS combos for this player, excluding the current one
+  const options = [];
+  for (const [cls, enabledSpecs] of Object.entries(player.specs || {})) {
+    for (const spec of enabledSpecs) {
+      const s = (CLASSES[cls] || []).find(s2 => s2.spec === spec);
+      if (s && s.role === 'DPS' && !(cls === a.class && spec === a.spec)) {
+        options.push({ class: cls, spec });
+      }
+    }
   }
 
-  rDungeon  = dungeon;
-  rKeyPool  = [...new Set(pool)];
-  runDungeonReveal(dungeon, fromFullPool);
+  if (options.length === 0) {
+    showInlineError(`${a.playerName} has no other DPS specs to re-roll.`);
+    return;
+  }
+
+  rerollCount++;
+  const chosen = pick(options);
+  rAssignments = rAssignments.map((slot, i) =>
+    i === dpsIdx ? { ...slot, class: chosen.class, spec: chosen.spec } : slot
+  );
+  render();
 }
 
-async function runDungeonReveal(dungeon, fromFullPool) {
+function setPlayerDungeon(playerId, dungeon) {
+  const ki = rKeyInputs[playerId] || { dungeon: null, level: 8 };
+  // Toggle off if same dungeon clicked again
+  rKeyInputs[playerId] = { ...ki, dungeon: ki.dungeon === dungeon ? null : dungeon };
+  render();
+}
+
+function setPlayerLevel(playerId, delta) {
+  const ki = rKeyInputs[playerId];
+  if (!ki || !ki.dungeon) return;
+  const newLevel = Math.max(2, (ki.level || 8) + delta);
+  rKeyInputs[playerId] = { ...ki, level: newLevel };
+  render();
+}
+
+function handleRollKey() {
+  // Build weighted pool: one entry per player who has a dungeon selected
+  const pool = [];
+  for (const a of rAssignments) {
+    const ki = rKeyInputs[a.playerId];
+    if (ki && ki.dungeon) {
+      pool.push({ dungeon: ki.dungeon, level: ki.level || 8, playerName: a.playerName });
+    }
+  }
+
+  let dungeon, keyHolder = null, keyLevel = null;
+  if (pool.length === 0) {
+    dungeon = pick(SEASON_DUNGEONS);
+  } else {
+    const chosen = pick(pool);
+    dungeon   = chosen.dungeon;
+    keyHolder = chosen.playerName;
+    keyLevel  = chosen.level;
+  }
+
+  rDungeon   = dungeon;
+  rKeyPool   = [...new Set(pool.map(p => p.dungeon))];
+  rKeyHolder = keyHolder;
+  rKeyLevel  = keyLevel;
+  runDungeonReveal(dungeon, keyHolder, keyLevel);
+}
+
+async function runDungeonReveal(dungeon, keyHolder, keyLevel) {
   isAnimating  = true;
   rPhase       = 'done';
   rDungeon     = '';
@@ -1417,19 +2310,6 @@ async function runDungeonReveal(dungeon, fromFullPool) {
   rDungeon    = dungeon;
   isAnimating = false;
 
-  if (fromFullPool) {
-    const finalSec = document.getElementById('final-section');
-    if (finalSec) {
-      const note = document.createElement('p');
-      note.className = 'notice';
-      note.style.marginTop = '0.5rem';
-      note.textContent = 'No keys entered — picked from full season pool';
-      const dungeonRevealEl = finalSec.querySelector('.dungeon-reveal');
-      if (dungeonRevealEl) dungeonRevealEl.insertAdjacentElement('afterend', note);
-      else finalSec.prepend(note);
-    }
-  }
-
   // Persist to history
   const roll = {
     id:          'roll-' + genId(),
@@ -1437,6 +2317,8 @@ async function runDungeonReveal(dungeon, fromFullPool) {
     assignments: rAssignments,
     dungeon,
     keyPool:     rKeyPool,
+    keyLevel:    keyLevel  ?? null,
+    keyHolder:   keyHolder ?? null,
   };
   appState.history = [roll, ...(appState.history || [])].slice(0, 200);
 
@@ -1451,26 +2333,41 @@ function resetRandomize() {
   rAssignments = [];
   rDungeon     = '';
   rKeyPool     = [];
+  rKeyInputs   = {};
+  rKeyHolder   = null;
+  rKeyLevel    = null;
+  rerollCount  = 0;
   render();
 }
 
 async function copyResult() {
-  const roleEmoji = { TANK: '🛡️', HEAL: '💚', DPS: '⚔️' };
+  const roleEmoji = { TANK: '🛡', HEAL: '✚', DPS: '⚔' };
+  const keyLine = rKeyLevel != null
+    ? `🎲 Tonight: +${rKeyLevel} ${rDungeon}${rKeyHolder ? ` (${rKeyHolder}'s key)` : ''}`
+    : `🎲 Tonight: ${rDungeon}`;
+  const comp = computeComp(rAssignments);
+  const compParts = [
+    `⚡ ${comp.interrupts} interrupts`,
+    comp.lust  ? `🩸 Lust` : null,
+    comp.brez.length ? `♻️ BRez` : null,
+  ].filter(Boolean);
   const lines = [
-    `🎲 Tonight: ${rDungeon}`,
+    keyLine,
     ...rAssignments.map(a =>
       `${roleEmoji[a.role] || '▪️'} ${ROLE_LABELS[a.role]}: ${a.playerName} — ${a.spec} ${a.class}`
     ),
+    ...(compParts.length ? [compParts.join(' · ')] : []),
   ];
   try {
     await navigator.clipboard.writeText(lines.join('\n'));
     const btn = document.getElementById('copy-result-btn');
     if (btn) {
+      const orig = btn.textContent;
       btn.textContent = '✓ Copied!';
-      setTimeout(() => { btn.textContent = '📋 Copy for Discord'; }, 2000);
+      setTimeout(() => { btn.textContent = orig; }, 2000);
     }
   } catch {
-    alert(lines.join('\n'));
+    showInlineError('Clipboard unavailable — copy manually:\n' + lines.join('\n'));
   }
 }
 
@@ -1499,63 +2396,136 @@ async function handleAddPlayer() {
 
   try {
     await saveState();
+    setupSelectedPlayerId = newPlayer.id;
+    setupAddingClass      = false;
     renderSetup();
+    showSaved();
   } catch (e) {
     appState.players = appState.players.filter(p => p.id !== newPlayer.id);
     setFieldErr(errEl, 'Failed to save: ' + e.message);
   }
 }
 
-function handleEditPlayer(id) {
-  const card   = document.getElementById(`player-${id}`);
-  const player = appState.players.find(p => p.id === id);
-  if (card && player) card.outerHTML = playerCardHtml(player, true);
+function selectSetupPlayer(id) {
+  setupSelectedPlayerId = id;
+  setupAddingClass      = false;
+  clearTimeout(removeConfirmTimer);
+  removeConfirmId = null;
+  renderSetup();
 }
 
-function handleCancelEdit(id) {
-  const card   = document.getElementById(`player-${id}`);
-  const player = appState.players.find(p => p.id === id);
-  if (card && player) card.outerHTML = playerCardHtml(player, false);
-}
+async function toggleSpec(playerId, cls, spec) {
+  const player = appState.players.find(p => p.id === playerId);
+  if (!player) return;
 
-async function handleSavePlayer(id) {
-  const nameEl  = document.getElementById(`ename-${id}`);
-  const errEl   = document.getElementById(`eerr-${id}`);
-  const name    = nameEl ? nameEl.value.trim() : '';
+  const old       = appState.players;
+  const curSpecs  = (player.specs[cls] || []).slice();
+  const isOn      = curSpecs.includes(spec);
+  let newSpecs;
+  if (isOn) {
+    newSpecs = curSpecs.filter(s => s !== spec);
+  } else {
+    newSpecs = [...curSpecs, spec];
+  }
 
-  if (!name)          return setFieldErr(errEl, 'Name is required.');
-  if (name.length>30) return setFieldErr(errEl, 'Name must be 30 characters or fewer.');
-  if (appState.players.some(p => p.id !== id && p.name.toLowerCase() === name.toLowerCase()))
-    return setFieldErr(errEl, 'A player with that name already exists.');
+  const updatedPlayerSpecs = { ...player.specs };
+  if (newSpecs.length === 0) {
+    delete updatedPlayerSpecs[cls];
+  } else {
+    updatedPlayerSpecs[cls] = newSpecs;
+  }
 
-  const specs = {};
-  document.querySelectorAll(`.edit-spec[data-player="${id}"]:checked`).forEach(cb => {
-    const cls = cb.dataset.class;
-    if (!specs[cls]) specs[cls] = [];
-    specs[cls].push(cb.value);
-  });
-  if (Object.keys(specs).length === 0) return setFieldErr(errEl, 'Select at least one spec.');
+  if (Object.keys(updatedPlayerSpecs).length === 0) {
+    showInlineError('At least one spec must remain enabled.');
+    return;
+  }
 
-  const old = appState.players;
-  appState.players = old.map(p => p.id === id ? { ...p, name, specs } : p);
-
+  appState.players = old.map(p =>
+    p.id === playerId ? { ...p, specs: updatedPlayerSpecs } : p
+  );
   try {
     await saveState();
     renderSetup();
     showSaved();
   } catch (e) {
     appState.players = old;
-    setFieldErr(errEl, 'Failed to save: ' + e.message);
+    showInlineError('Failed to save: ' + e.message);
+  }
+}
+
+async function addClassToPlayer(playerId, cls) {
+  const player = appState.players.find(p => p.id === playerId);
+  if (!player || player.specs[cls]) return;
+
+  const old = appState.players;
+  const allSpecsForClass = (CLASSES[cls] || []).map(s => s.spec);
+  const updatedSpecs = { ...player.specs, [cls]: allSpecsForClass };
+
+  appState.players = old.map(p =>
+    p.id === playerId ? { ...p, specs: updatedSpecs } : p
+  );
+  setupAddingClass = false;
+  try {
+    await saveState();
+    renderSetup();
+    showSaved();
+  } catch (e) {
+    appState.players = old;
+    setupAddingClass = false;
+    showInlineError('Failed to save: ' + e.message);
+  }
+}
+
+async function handleSavePlayerName(id) {
+  const nameEl = document.getElementById(`roster-name-${id}`);
+  if (!nameEl) return;
+  const name = nameEl.value.trim();
+  const player = appState.players.find(p => p.id === id);
+  if (!player || name === player.name) return;
+
+  if (!name || name.length > 30) {
+    nameEl.value = player.name;
+    showInlineError(name ? 'Name must be 30 characters or fewer.' : 'Name is required.');
+    return;
+  }
+  if (appState.players.some(p => p.id !== id && p.name.toLowerCase() === name.toLowerCase())) {
+    nameEl.value = player.name;
+    showInlineError('A player with that name already exists.');
+    return;
+  }
+
+  const old = appState.players;
+  appState.players = old.map(p => p.id === id ? { ...p, name } : p);
+  try {
+    await saveState();
+    renderSetup();
+    showSaved();
+  } catch (e) {
+    appState.players = old;
+    showInlineError('Failed to save: ' + e.message);
   }
 }
 
 async function handleRemovePlayer(id) {
-  const player = appState.players.find(p => p.id === id);
-  if (!player || !confirm(`Remove ${player.name} from the roster?`)) return;
+  if (removeConfirmId !== id) {
+    removeConfirmId = id;
+    clearTimeout(removeConfirmTimer);
+    removeConfirmTimer = setTimeout(() => {
+      removeConfirmId = null;
+      const btn = document.getElementById(`remove-btn-${id}`);
+      if (btn) btn.textContent = 'Remove';
+    }, 3000);
+    renderSetup();
+    return;
+  }
+
+  clearTimeout(removeConfirmTimer);
+  removeConfirmId = null;
 
   const old = appState.players;
   appState.players = old.filter(p => p.id !== id);
   activePlayers.delete(id);
+  setupSelectedPlayerId = null;
 
   try {
     await saveState();
@@ -1563,7 +2533,7 @@ async function handleRemovePlayer(id) {
   } catch (e) {
     appState.players = old;
     activePlayers.add(id);
-    alert('Failed to remove player: ' + e.message);
+    showInlineError('Failed to remove player: ' + e.message);
   }
 }
 
@@ -1689,9 +2659,13 @@ function restoreActivePlayers() {
 async function boot() {
   updateMuteBtn();
 
+  // Season pill in header
+  const seasonPillEl = document.getElementById('season-pill');
+  if (seasonPillEl) seasonPillEl.textContent = SEASON_LABEL;
+
   // Render footer from constant so it stays in sync when CURRENT_SEASON changes
   const footer = document.querySelector('footer');
-  if (footer) footer.innerHTML = `WoW M+ Randomizer &middot; ${esc(CURRENT_SEASON)}`;
+  if (footer) footer.innerHTML = `WoWRND &middot; ${esc(CURRENT_SEASON)}`;
 
   // Pre-warm AudioContext on first user gesture to avoid Safari iOS silence
   document.addEventListener('click', function primeAudio() {
