@@ -1394,7 +1394,7 @@ footer {
 
   <main id="main"></main>
 
-  <footer>WoW M+ Randomizer &middot; Midnight Season 1</footer>
+  <footer>Midnight Season 1</footer>
 </div>
 
 <script>
@@ -1857,8 +1857,8 @@ function updateSeasonPill() {
     el.style.display = '';
     el.classList.add('season-pill--phase');
   } else {
-    el.textContent = SEASON_LABEL;
-    el.style.display = '';
+    el.textContent = '';
+    el.style.display = 'none';
     el.classList.remove('season-pill--phase');
   }
 }
