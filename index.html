@@ -2004,7 +2004,6 @@ function renderRandomize() {
     h += `<div class="slot-reveal-header">
       <span></span>
       <button class="skip-btn" id="skip-btn-el" onclick="skipReveal=true">SKIP ▸▸</button>
-      <button class="action-primary" id="advance-btn-el" style="display:none" onclick="advanceToKeystones()">ENTER KEYSTONES →</button>
     </div>`;
     h += '<div class="slot-cards" role="status" aria-live="polite">';
     for (let i = 0; i < rAssignments.length; i++) {
@@ -2020,6 +2019,9 @@ function renderRandomize() {
     }
     h += '</div>';
     h += '<div class="progress-line" id="reveal-progress">0 OF 5 BOUND · 5 STILL WRITHING</div>';
+    h += '<div class="center" style="margin-top:32px;display:none" id="advance-btn-el">';
+    h += `<button class="action-primary" onclick="advanceToKeystones()">◆ ENTER THE KEYSTONE PHASE ◆</button>`;
+    h += '</div>';
     h += '</section>';
   }
 
@@ -2647,7 +2649,7 @@ async function runRevealAnimation(assignments) {
   const skipBtn    = document.getElementById('skip-btn-el');
   const advanceBtn = document.getElementById('advance-btn-el');
   if (skipBtn)    skipBtn.style.display    = 'none';
-  if (advanceBtn) advanceBtn.style.display = '';
+  if (advanceBtn) advanceBtn.style.display = 'flex';
 }
 
 function advanceToKeystones() {
