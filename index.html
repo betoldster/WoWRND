@@ -2019,8 +2019,8 @@ function renderRandomize() {
     }
     h += '</div>';
     h += '<div class="progress-line" id="reveal-progress">0 OF 5 BOUND · 5 STILL WRITHING</div>';
-    h += '<div class="center" style="margin-top:32px;display:none" id="advance-btn-el">';
-    h += `<button class="action-primary" onclick="advanceToKeystones()">◆ ENTER THE KEYSTONE PHASE ◆</button>`;
+    h += '<div class="center" style="margin-top:32px">';
+    h += `<button class="action-primary" id="advance-btn-el" disabled onclick="advanceToKeystones()">◆ ENTER THE KEYSTONE PHASE ◆</button>`;
     h += '</div>';
     h += '</section>';
   }
@@ -2648,8 +2648,8 @@ async function runRevealAnimation(assignments) {
   isAnimating = false;
   const skipBtn    = document.getElementById('skip-btn-el');
   const advanceBtn = document.getElementById('advance-btn-el');
-  if (skipBtn)    skipBtn.style.display    = 'none';
-  if (advanceBtn) advanceBtn.style.display = 'block';
+  if (skipBtn)    skipBtn.style.display = 'none';
+  if (advanceBtn) advanceBtn.disabled   = false;
 }
 
 function advanceToKeystones() {
