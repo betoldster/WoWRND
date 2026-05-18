@@ -2553,11 +2553,14 @@ function clearActivePlayers() {
 function handleRandomize() {
   if (isAnimating || activePlayers.size !== 5) return;
 
-  const { assignments, errors } = computeAssignments([...activePlayers]);
+  let assignments, errors, attempts = 0;
+  do {
+    ({ assignments, errors } = computeAssignments([...activePlayers]));
+    attempts++;
+  } while (errors.length > 0 && attempts < 100);
 
   if (errors.length > 0) {
-    const msg = errors.map(e => `• ${e.player.name} cannot fill ${ROLE_LABELS[e.role]}`).join(' ');
-    showInlineError(`Role conflict: ${msg} — update their specs in Roster.`);
+    showInlineError('No valid assignment found — make sure at least one selected player has Tank specs and one has Heal specs enabled.');
     return;
   }
 
