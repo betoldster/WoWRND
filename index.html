@@ -2510,8 +2510,8 @@ function handleRandomize() {
   const { assignments, errors } = computeAssignments([...activePlayers]);
 
   if (errors.length > 0) {
-    const msg = errors.map(e => `• ${e.player.name} cannot fill ${ROLE_LABELS[e.role]}`).join('\n');
-    alert(`Role conflict:\n${msg}\n\nUpdate their classes in Setup or try again.`);
+    const msg = errors.map(e => `• ${e.player.name} cannot fill ${ROLE_LABELS[e.role]}`).join(' ');
+    showInlineError(`Role conflict: ${msg} — update their specs in Roster.`);
     return;
   }
 
@@ -2933,7 +2933,7 @@ async function handleClearHistory() {
     renderHistory();
   } catch (e) {
     appState.history = old;
-    alert('Failed to clear history: ' + e.message);
+    showInlineError('Failed to clear history: ' + e.message);
   }
 }
 
@@ -2950,7 +2950,7 @@ async function handleExportHistory() {
     a.click();
     URL.revokeObjectURL(url);
   } catch (e) {
-    alert('Export failed: ' + e.message);
+    showInlineError('Export failed: ' + e.message);
   }
 }
 
@@ -2968,7 +2968,7 @@ async function handleDeleteRoll(id) {
     renderHistory();
   } catch (e) {
     appState.history = old;
-    alert('Failed to delete roll: ' + e.message);
+    showInlineError('Failed to delete roll: ' + e.message);
   }
 }
 
