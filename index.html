@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>WoWRND · Keystone Ritual</title>
+<title>Keystone Ritual · Midnight Season 1</title>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700;800&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -3099,7 +3099,7 @@ async function boot() {
 
   // Render footer from constant so it stays in sync when CURRENT_SEASON changes
   const footer = document.querySelector('footer');
-  if (footer) footer.innerHTML = `WoWRND &middot; ${esc(CURRENT_SEASON)}`;
+  if (footer) footer.innerHTML = esc(CURRENT_SEASON);
 
   // Pre-warm AudioContext on first user gesture to avoid Safari iOS silence
   document.addEventListener('click', function primeAudio() {
