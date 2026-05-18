@@ -1383,7 +1383,7 @@ footer {
 const SEASON_DUNGEONS = [
   "Windrunner Spire",
   "Maisara Caverns",
-  "Magisters' Terrace",
+  "Magister's Terrace",
   "Nexus-Point Xenas",
   "Algeth'ar Academy",
   "Seat of the Triumvirate",
@@ -1500,12 +1500,12 @@ const ROLE_GLYPHS = { TANK: '🛡', HEAL: '✚', DPS: '⚔' };
 const DUNGEON_CODES = {
   "Windrunner Spire":        "WS",
   "Maisara Caverns":         "MC",
-  "Magisters' Terrace":      "MT",
+  "Magister's Terrace":      "MT",
   "Nexus-Point Xenas":       "NPX",
   "Algeth'ar Academy":       "AA",
-  "Seat of the Triumvirate": "ST",
+  "Seat of the Triumvirate": "SEAT",
   "Skyreach":                "SR",
-  "Pit of Saron":            "PoS",
+  "Pit of Saron":            "POS",
 };
 
 const WEEKLY_AFFIXES = ["Tyrannical", "Xal'atath's Bargain", "Xal'atath's Guile"];
@@ -2028,7 +2028,8 @@ function renderRandomize() {
       for (const [dName, dCode] of Object.entries(DUNGEON_CODES)) {
         const sel = ki.dungeon === dName;
         h += `<button class="dungeon-code${sel ? ' dungeon-code--selected' : ''}"
-          onclick="setPlayerDungeon('${esc(a.playerId)}','${esc(dName)}')">${esc(dCode)}</button>`;
+          data-dungeon="${esc(dName)}"
+          onclick="setPlayerDungeon('${esc(a.playerId)}', this.dataset.dungeon)">${esc(dCode)}</button>`;
       }
       h += '</div>';
 
