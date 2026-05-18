@@ -34,16 +34,16 @@ Deployment is fully automated: push to `main` and Netlify CI deploys. No build c
 **Rendering pattern**: Each view renders itself by building an HTML string and assigning it to `main.innerHTML`. There is no virtual DOM or framework. Event handlers are either inline `onclick` attributes or re-attached after each `render()` call. When editing the render functions, be aware that any DOM state (checked checkboxes, focus) is destroyed on re-render.
 
 **Randomize phase state machine**: `rPhase` drives the entire Randomize view:
-- `idle` — player selection, roll button shown
-- `revealing` — slot-machine animation running (`isAnimating = true`)
-- `key-entry` — assignments settled, key checkbox grid shown
-- `done` — dungeon revealed, "Randomize Again" shown
+- `idle` — ritual gathering (class pills, ritual slots, cast button)
+- `revealing` — vertical slot card animation running (`isAnimating = true`)
+- `key-entry` — assignments settled, dungeon-code chip + key-level picker per player
+- `done` — Tonight's Path (gold dungeon card, party comp, copy/reroll/new-session)
 
-`rAssignments`, `rDungeon`, and `rKeyPool` are populated as phases advance. `resetRandomize()` returns everything to `idle`.
+`rAssignments`, `rDungeon`, `rKeyPool`, `rKeyInputs`, `rKeyHolder`, `rKeyLevel` are populated as phases advance. `resetRandomize()` returns everything to `idle`.
 
 **State flow**: `appState` is the single in-memory source of truth. Mutations optimistically update `appState`, call `saveState()`, and roll back on failure. The server's PUT response becomes the new `appState` (server adds `updatedAt`).
 
-**Responsive scaling**: `html { font-size }` is set in media queries (1440p: 20px, 1920p: 23px). All sizing uses `rem` so scaling flows through automatically. Must target `html`, not `body`.
+**Responsive scaling**: `html { font-size: 17px }` is the default base (set directly, before media queries). Breakpoints: 1440p → 19px, 1920p → 21px, 2560p+ → 23px. All font sizes in CSS use `rem` — never hardcoded `px`. Must target `html`, not `body`, for rem to scale correctly.
 
 **Audio**: All sounds synthesized via Web Audio API — `playClick()` during slot rolling, `playSettle()` on each assignment lock-in, `playFanfare()` on dungeon reveal. No audio files.
 
@@ -84,7 +84,10 @@ Netlify Function v2 — uses `req.method`, `req.headers.get()`, `req.json()`, `n
 - **`CLASSES`** — 13 classes, each with specs and eligible roles (`TANK` / `HEAL` / `DPS`).
 - **`CLASS_COLORS`** — official WoW hex color per class, used for colored player names.
 - **`SEASON_DUNGEONS`** — 8 dungeons for Mythic+ Midnight Season 1.
-- **`ROLE_COLORS`** — Tank `#2a4d8a`, Heal `#2a8a4d`, DPS `#8a2a2a`.
+- **`ROLE_COLORS`** — Tank `#3b6cd9`, Heal `#3cc977`, DPS `#e34a4a`.
+- **`DUNGEON_CODES`** — short 2–3 letter codes per dungeon (e.g. `"Skyreach": "SR"`), used in key-entry chips and Chronicle distribution.
+- **`WEEKLY_AFFIXES`** — array of strings for current week's active affixes. Update manually each week.
+- **`SEASON_LABEL`** — mono label shown in the header (e.g. `"MIDNIGHT · S1 · WEEK 9"`). Update manually.
 
 To update when the season changes: edit `SEASON_DUNGEONS` only.  
 To update after a class/spec rework: edit `CLASSES` only.
@@ -108,6 +111,7 @@ GROUP_PASSWORD=your_local_dev_password
 ## Known Gotchas
 
 - **Netlify Function v2 API**: the function uses `req.method` / `req.headers.get()` / `await req.json()` / `new Response()` — not the v1 `event.httpMethod` / `exports.handler` style.
-- **`rem` scaling**: font-size must be set on `html` (not `body`) for `rem` units to scale. The large-screen media queries target `html`.
+- **`rem` scaling**: font-size must be set on `html` (not `body`) for `rem` units to scale. The large-screen media queries target `html`. Never add a hardcoded `px` font size to CSS — use `rem`.
+- **Design tokens**: all colors, fonts, and spacing use CSS custom properties defined on `:root`. Gold (`--gold`) is reserved for the dungeon-reveal screen only; use `--keystone` (`#a86bff`) as the primary accent everywhere else.
 - **`hidden` attribute**: elements with explicit `display` CSS need `[hidden] { display: none !important }` or `element.hidden = true` has no visual effect.
 - **`@netlify/blobs` storage**: raw string round-trip is used (`store.set(key, JSON.stringify(obj))`) rather than the `setJSON` convenience method, for reliability across package versions.

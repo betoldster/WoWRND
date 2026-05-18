@@ -53,6 +53,7 @@
   --font-mono:    "JetBrains Mono", ui-monospace, monospace;
 }
 
+html { font-size: 17px; }
 body {
   background: var(--bg);
   background-image:
@@ -60,9 +61,12 @@ body {
     radial-gradient(ellipse 60% 40% at 85% 100%, rgba(168,107,255,0.06), transparent 60%);
   color: var(--text);
   font-family: var(--font-ui);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
   min-height: 100vh;
-  font-size: 16px;
-  line-height: 1.5;
+  font-size: 1rem;
+  line-height: 1.55;
 }
 
 /* ---- PASSWORD OVERLAY ---- */
@@ -134,17 +138,17 @@ header {
 }
 .wordmark-text {
   font-family: var(--font-display);
-  font-size: 1rem;
+  font-size: 1.15rem;
   font-weight: 700;
-  letter-spacing: 0.18em;
+  letter-spacing: 0.16em;
   color: var(--text);
   line-height: 1;
 }
 .season-pill {
   font-family: var(--font-mono);
-  font-size: 9px;
+  font-size: 0.7rem;
   font-weight: 500;
-  letter-spacing: 0.15em;
+  letter-spacing: 0.12em;
   color: var(--text-mute);
   line-height: 1;
 }
@@ -166,11 +170,11 @@ nav { display: flex; gap: 0.25rem; flex: 1; }
   border: none;
   border-bottom: 2px solid transparent;
   color: var(--text-dim);
-  padding: 0.4rem 0.9rem;
+  padding: 0.45rem 1rem;
   border-radius: 0;
   cursor: pointer;
   font-family: var(--font-ui);
-  font-size: 0.8125rem;
+  font-size: 0.9rem;
   font-weight: 600;
   letter-spacing: 0.04em;
   transition: color 0.15s, border-color 0.15s;
@@ -181,7 +185,7 @@ nav { display: flex; gap: 0.25rem; flex: 1; }
 }
 .tab:hover  { color: var(--text); }
 .tab.active { color: var(--text); border-bottom-color: var(--keystone); font-weight: 600; }
-.tab-glyph  { color: var(--text-mute); font-size: 0.75rem; transition: color 0.15s; }
+.tab-glyph  { color: var(--text-mute); font-size: 0.85rem; transition: color 0.15s; }
 .tab.active .tab-glyph { color: var(--keystone); }
 
 .mute-btn {
@@ -291,7 +295,7 @@ footer {
   background: linear-gradient(135deg, var(--keystone), var(--keystone-dim));
   color: #fff; border: none;
   padding: 11px 22px; border-radius: 6px;
-  font-family: var(--font-display); font-size: 13px; font-weight: 700; letter-spacing: 0.18em;
+  font-family: var(--font-display); font-size: 0.875rem; font-weight: 700; letter-spacing: 0.18em;
   box-shadow: 0 0 18px var(--keystone-glow);
   cursor: pointer;
   transition: box-shadow 0.15s, transform 0.15s;
@@ -302,7 +306,7 @@ footer {
   background: transparent; color: var(--text);
   border: 1px solid var(--border-bright);
   padding: 11px 22px; border-radius: 6px;
-  font-family: var(--font-ui); font-size: 13px; font-weight: 700; letter-spacing: 0.1em;
+  font-family: var(--font-ui); font-size: 0.875rem; font-weight: 700; letter-spacing: 0.1em;
   cursor: pointer;
   transition: border-color 0.15s, background 0.15s;
 }
@@ -311,7 +315,7 @@ footer {
   display: inline-flex; align-items: center; gap: 6px;
   background: transparent; color: var(--danger);
   border: 1px solid rgba(227,74,74,0.33); border-radius: 5px;
-  font-family: var(--font-ui); font-size: 11px; font-weight: 600;
+  font-family: var(--font-ui); font-size: 0.8rem; font-weight: 600;
   padding: 6px 12px; cursor: pointer;
   transition: background 0.15s, border-color 0.15s;
 }
@@ -341,7 +345,7 @@ footer {
   padding: 5px 11px;
   border-radius: 999px;
   font-family: var(--font-ui);
-  font-size: 11px;
+  font-size: 0.8rem;
   font-weight: 700;
   color: #fff;
   letter-spacing: 0.1em;
@@ -350,8 +354,8 @@ footer {
 .role-badge--tank { background: linear-gradient(135deg, #3b6cd9, rgba(59,108,217,0.8)); box-shadow: 0 0 0 1px rgba(59,108,217,0.33), 0 2px 6px rgba(59,108,217,0.2); }
 .role-badge--heal { background: linear-gradient(135deg, #3cc977, rgba(60,201,119,0.8)); box-shadow: 0 0 0 1px rgba(60,201,119,0.33), 0 2px 6px rgba(60,201,119,0.2); }
 .role-badge--dps  { background: linear-gradient(135deg, #e34a4a, rgba(227,74,74,0.8)); box-shadow: 0 0 0 1px rgba(227,74,74,0.33), 0 2px 6px rgba(227,74,74,0.2); }
-.role-badge.sm { padding: 3px 8px; font-size: 10px; }
-.role-badge.lg { padding: 7px 14px; font-size: 13px; }
+.role-badge.sm { padding: 3px 8px; font-size: 0.72rem; letter-spacing: 0.08em; }
+.role-badge.lg { padding: 7px 14px; font-size: 0.9rem; }
 
 /* ---- CLASS CHIP (legacy inline chip) ---- */
 .class-chip {
@@ -401,16 +405,16 @@ footer {
 .class-pill--on { border-color: var(--class-color, var(--keystone)); }
 .class-pill__name {
   font-family: var(--font-ui);
-  font-size: 13px;
+  font-size: 0.95rem;
   font-weight: 700;
   color: var(--text);
   line-height: 1.1;
   display: block;
 }
 .class-pill__classes {
-  font-size: 10px;
+  font-size: 0.72rem;
   font-family: var(--font-mono);
-  letter-spacing: 0.05em;
+  letter-spacing: 0.04em;
   margin-top: 2px;
   display: block;
 }
@@ -423,7 +427,7 @@ footer {
   padding: 6px 11px;
   border-radius: 999px;
   font-family: var(--font-ui);
-  font-size: 12px;
+  font-size: 0.82rem;
   background: transparent;
   border: 1px solid var(--border);
   color: var(--text-mute);
@@ -450,9 +454,9 @@ footer {
   border: none;
 }
 .spec-chip__role {
-  font-size: 8px;
+  font-size: 0.65rem;
   font-family: var(--font-mono);
-  letter-spacing: 0.1em;
+  letter-spacing: 0.08em;
   margin-left: 2px;
   color: var(--text-mute);
 }
@@ -463,7 +467,7 @@ footer {
 /* ---- DUNGEON CODE CHIP ---- */
 .dungeon-code {
   display: inline-block;
-  font-size: 11px;
+  font-size: 0.78rem;
   font-family: var(--font-mono);
   padding: 4px 9px;
   border-radius: 999px;
@@ -510,15 +514,15 @@ footer {
 }
 .ritual-slot__q {
   font-family: var(--font-display);
-  font-size: 20px;
+  font-size: 1.25rem;
   color: var(--text-mute);
   line-height: 1;
 }
 .ritual-slot__name {
   font-family: var(--font-mono);
-  font-size: 8px;
+  font-size: 0.68rem;
   color: var(--text-dim);
-  letter-spacing: 0.06em;
+  letter-spacing: 0.04em;
   text-align: center;
   max-width: 100%;
   overflow: hidden;
@@ -528,9 +532,9 @@ footer {
 }
 .gather-label {
   font-family: var(--font-mono);
-  font-size: 10px;
+  font-size: 0.75rem;
   color: var(--text-mute);
-  letter-spacing: 0.2em;
+  letter-spacing: 0.18em;
   margin-bottom: 10px;
 }
 .class-pills-row {
@@ -545,12 +549,12 @@ footer {
   gap: 10px;
   flex-wrap: wrap;
   margin-bottom: 20px;
-  font-size: 12px;
+  font-size: 0.85rem;
   color: var(--text-dim);
 }
 .role-pool-label {
   font-family: var(--font-mono);
-  font-size: 10px;
+  font-size: 0.75rem;
   color: var(--text-mute);
   letter-spacing: 0.2em;
 }
@@ -572,7 +576,7 @@ footer {
 .cast-btn:disabled { opacity: 0.42; cursor: not-allowed; transform: none; box-shadow: none; }
 .cast-hint {
   font-family: var(--font-mono);
-  font-size: 10px;
+  font-size: 0.75rem;
   color: var(--text-mute);
   letter-spacing: 0.15em;
   margin-top: 8px;
@@ -620,7 +624,7 @@ footer {
 .slot-portrait--settled { border-color: transparent; }
 .slot-cycle-name {
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: 0.8rem;
   color: var(--text-dim);
   letter-spacing: 0.06em;
   text-align: center;
@@ -645,7 +649,7 @@ footer {
   50%       { opacity: 1; }
 }
 .slot-spec-line {
-  font-size: 10px;
+  font-size: 0.75rem;
   color: var(--text-dim);
   font-family: var(--font-mono);
   text-align: center;
@@ -653,7 +657,7 @@ footer {
 }
 .skip-btn {
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: 0.78rem;
   letter-spacing: 0.12em;
   padding: 6px 12px;
   border-radius: 6px;
@@ -666,7 +670,7 @@ footer {
 .skip-btn:hover { border-color: var(--text-dim); color: var(--text); }
 .progress-line {
   font-family: var(--font-mono);
-  font-size: 10px;
+  font-size: 0.75rem;
   color: var(--text-mute);
   letter-spacing: 0.15em;
   text-align: center;
@@ -681,10 +685,10 @@ footer {
 /* ---- PHASE TAG ---- */
 .phase-tag {
   font-family: var(--font-mono);
-  font-size: 11px;
-  font-weight: 500;
+  font-size: 0.82rem;
+  font-weight: 600;
   color: var(--keystone);
-  letter-spacing: 0.25em;
+  letter-spacing: 0.22em;
   margin-bottom: 20px;
   display: flex;
   align-items: center;
@@ -721,8 +725,8 @@ footer {
 }
 .key-player-row.has-key { border-color: var(--border-bright); }
 .key-player-info { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-.key-player-name-text { font-size: 13px; font-weight: 700; line-height: 1.1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.key-player-spec-line { font-size: 10px; font-family: var(--font-mono); color: var(--text-dim); letter-spacing: 0.05em; white-space: nowrap; }
+.key-player-name-text { font-size: 0.95rem; font-weight: 700; line-height: 1.15; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.key-player-spec-line { font-size: 0.75rem; font-family: var(--font-mono); color: var(--text-dim); letter-spacing: 0.04em; white-space: nowrap; }
 .key-dungeons { display: flex; flex-wrap: wrap; gap: 5px; }
 .key-level-area {
   display: flex;
@@ -738,7 +742,7 @@ footer {
   width: 22px; height: 22px;
   border-radius: 4px;
   cursor: pointer;
-  font-size: 16px;
+  font-size: 1.05rem;
   line-height: 1;
   display: flex; align-items: center; justify-content: center;
   transition: border-color 0.15s, color 0.15s;
@@ -746,9 +750,9 @@ footer {
   user-select: none;
 }
 .key-level-btn:hover { border-color: var(--keystone); color: var(--text); }
-.no-key-label { font-size: 10px; font-family: var(--font-mono); color: var(--text-mute); letter-spacing: 0.1em; white-space: nowrap; }
+.no-key-label { font-size: 0.75rem; font-family: var(--font-mono); color: var(--text-mute); letter-spacing: 0.08em; white-space: nowrap; }
 .key-tip {
-  font-size: 11px;
+  font-size: 0.8rem;
   font-family: var(--font-mono);
   color: var(--text-mute);
   letter-spacing: 0.02em;
@@ -767,28 +771,28 @@ footer {
   gap: 14px;
 }
 .odds-header-label {
-  font-size: 9px;
+  font-size: 0.72rem;
   font-family: var(--font-mono);
   font-weight: 700;
   color: var(--text-mute);
   letter-spacing: 0.2em;
 }
 .odds-count {
-  font-size: 22px;
+  font-size: 1.5rem;
   font-family: var(--font-mono);
   font-weight: 500;
   color: var(--text);
   line-height: 1;
 }
-.odds-count-dim { font-size: 16px; color: var(--text-mute); }
+.odds-count-dim { font-size: 1.05rem; color: var(--text-mute); }
 .odds-dungeon-list { display: flex; flex-direction: column; gap: 8px; flex: 1; }
 .odds-dungeon-row { display: flex; flex-direction: column; gap: 3px; }
 .odds-dungeon-meta { display: flex; justify-content: space-between; align-items: baseline; }
-.odds-dungeon-name { font-size: 11px; color: var(--text); }
-.odds-dungeon-pct  { font-size: 10px; font-family: var(--font-mono); color: var(--keystone); }
+.odds-dungeon-name { font-size: 0.82rem; color: var(--text); }
+.odds-dungeon-pct  { font-size: 0.75rem; font-family: var(--font-mono); color: var(--keystone); }
 .odds-bar-track { height: 4px; background: var(--bg-raised); border-radius: 2px; overflow: hidden; }
 .odds-bar-fill  { height: 100%; background: var(--keystone); border-radius: 2px; transition: width 0.3s ease; }
-.odds-empty { font-size: 11px; font-family: var(--font-mono); color: var(--text-mute); }
+.odds-empty { font-size: 0.82rem; font-family: var(--font-mono); color: var(--text-mute); }
 
 /* mobile: stack at narrow width */
 @media (max-width: 700px) {
@@ -821,7 +825,7 @@ footer {
   justify-content: center;
   border-bottom: 1px dashed rgba(255,201,77,0.3);
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: 0.8rem;
   letter-spacing: 0.12em;
   color: rgba(255,201,77,0.3);
   user-select: none;
@@ -829,7 +833,7 @@ footer {
 .dungeon-card-body { padding: 20px 20px 16px; }
 .dungeon-kicker {
   font-family: var(--font-mono);
-  font-size: 9px;
+  font-size: 0.72rem;
   font-weight: 700;
   color: rgba(255,201,77,0.7);
   letter-spacing: 0.22em;
@@ -869,13 +873,13 @@ footer {
   display: flex;
   align-items: center;
   gap: 7px;
-  font-size: 12px;
+  font-size: 0.85rem;
   color: var(--text-dim);
 }
 .affix-tags { display: flex; gap: 6px; flex-wrap: wrap; }
 .affix-tag {
   font-family: var(--font-mono);
-  font-size: 10px;
+  font-size: 0.72rem;
   padding: 3px 8px;
   border-radius: 999px;
   background: var(--bg-raised);
@@ -891,7 +895,7 @@ footer {
 }
 .final-party-label {
   font-family: var(--font-mono);
-  font-size: 9px;
+  font-size: 0.72rem;
   font-weight: 700;
   letter-spacing: 0.2em;
   color: var(--text-mute);
@@ -908,8 +912,8 @@ footer {
   padding: 8px 12px;
 }
 .final-party-info { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
-.final-party-name { font-size: 13px; font-weight: 700; line-height: 1.1; }
-.final-party-spec { font-size: 10px; font-family: var(--font-mono); color: var(--text-dim); }
+.final-party-name { font-size: 0.95rem; font-weight: 700; line-height: 1.15; }
+.final-party-spec { font-size: 0.75rem; font-family: var(--font-mono); color: var(--text-dim); }
 .comp-readout {
   background: var(--bg-surface);
   border: 1px solid var(--border);
@@ -919,13 +923,13 @@ footer {
   align-items: center;
   gap: 8px;
   flex-wrap: wrap;
-  font-size: 12px;
+  font-size: 0.85rem;
   color: var(--text-dim);
   margin-bottom: 20px;
 }
 .comp-readout-label {
   font-family: var(--font-mono);
-  font-size: 9px;
+  font-size: 0.72rem;
   font-weight: 700;
   letter-spacing: 0.2em;
   color: var(--text-mute);
@@ -965,9 +969,9 @@ footer {
 }
 .roster-player-row:hover { background: var(--bg-surface); }
 .roster-player-meta { flex: 1; min-width: 0; }
-.roster-player-name { font-size: 13px; font-weight: 700; line-height: 1.1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.roster-player-classes { font-size: 10px; font-family: var(--font-mono); color: var(--text-dim); margin-top: 1px; }
-.roster-player-chevron { color: var(--keystone); font-size: 18px; flex-shrink: 0; line-height: 1; }
+.roster-player-name { font-size: 0.95rem; font-weight: 700; line-height: 1.15; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.roster-player-classes { font-size: 0.75rem; font-family: var(--font-mono); color: var(--text-dim); margin-top: 2px; }
+.roster-player-chevron { color: var(--keystone); font-size: 1.15rem; flex-shrink: 0; line-height: 1; }
 .roster-add-btn {
   display: flex;
   align-items: center;
@@ -979,7 +983,7 @@ footer {
   background: transparent;
   color: var(--text-dim);
   font-family: var(--font-ui);
-  font-size: 12px;
+  font-size: 0.85rem;
   cursor: pointer;
   transition: border-color 0.15s, color 0.15s;
   width: 100%;
@@ -994,8 +998,8 @@ footer {
   height: 180px;
   color: var(--text-mute);
   font-family: var(--font-mono);
-  font-size: 11px;
-  letter-spacing: 0.12em;
+  font-size: 0.82rem;
+  letter-spacing: 0.1em;
   border: 1px dashed var(--border);
   border-radius: 10px;
 }
@@ -1024,7 +1028,7 @@ footer {
   transition: border-color 0.15s;
 }
 .roster-panel-name-input:focus { outline: none; border-bottom-color: var(--keystone); }
-.roster-panel-spec-count { font-family: var(--font-mono); font-size: 10px; color: var(--text-mute); letter-spacing: 0.1em; margin-top: 4px; }
+.roster-panel-spec-count { font-family: var(--font-mono); font-size: 0.75rem; color: var(--text-mute); letter-spacing: 0.08em; margin-top: 4px; }
 .class-card {
   border-radius: 8px;
   border-left: 3px solid var(--border);
@@ -1033,9 +1037,9 @@ footer {
   margin-bottom: 8px;
 }
 .class-card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 5px; }
-.class-card-name { font-family: var(--font-display); font-size: 1rem; font-weight: 700; }
+.class-card-name { font-family: var(--font-display); font-size: 1.1rem; font-weight: 700; }
 .class-card-right { display: flex; align-items: center; gap: 8px; }
-.class-card-counter { font-family: var(--font-mono); font-size: 10px; color: var(--text-mute); }
+.class-card-counter { font-family: var(--font-mono); font-size: 0.75rem; color: var(--text-mute); }
 .class-card-dots { display: flex; gap: 3px; margin-bottom: 8px; }
 .class-dot { width: 5px; height: 5px; border-radius: 50%; }
 .spec-chips-row { display: flex; flex-wrap: wrap; gap: 6px; }
@@ -1050,7 +1054,7 @@ footer {
   background: transparent;
   color: var(--text-dim);
   font-family: var(--font-ui);
-  font-size: 12px;
+  font-size: 0.85rem;
   cursor: pointer;
   transition: border-color 0.15s, color 0.15s;
 }
@@ -1062,7 +1066,7 @@ footer {
   background: var(--bg-raised);
   border: 1px solid var(--border);
   font-family: var(--font-ui);
-  font-size: 12px;
+  font-size: 0.85rem;
   cursor: pointer;
   transition: border-color 0.15s;
 }
@@ -1151,7 +1155,7 @@ footer {
 }
 .hero-stat-label {
   font-family: var(--font-mono);
-  font-size: 9px;
+  font-size: 0.72rem;
   font-weight: 700;
   color: var(--text-mute);
   letter-spacing: 0.2em;
@@ -1165,7 +1169,7 @@ footer {
   margin-bottom: 3px;
 }
 .hero-stat-caption {
-  font-size: 11px;
+  font-size: 0.8rem;
   color: var(--text-dim);
   font-family: var(--font-mono);
 }
@@ -1180,9 +1184,9 @@ footer {
 .chronicle-right { flex: 1 1 260px; min-width: 0; }
 .chronicle-col-label {
   font-family: var(--font-mono);
-  font-size: 10px;
+  font-size: 0.78rem;
   color: var(--text-mute);
-  letter-spacing: 0.2em;
+  letter-spacing: 0.18em;
   margin-bottom: 12px;
 }
 
@@ -1198,7 +1202,7 @@ footer {
   margin-bottom: 6px;
 }
 .role-dist-player { min-width: 60px; flex-shrink: 0; }
-.role-dist-name   { font-size: 12px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.role-dist-name   { font-size: 0.85rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .stacked-bar-wrap { flex: 1; display: flex; flex-direction: column; gap: 3px; }
 .stacked-bar {
   height: 14px;
@@ -1209,7 +1213,7 @@ footer {
 .stacked-bar__seg { height: 100%; transition: width 0.5s ease; }
 .role-dist-counts {
   font-family: var(--font-mono);
-  font-size: 10px;
+  font-size: 0.75rem;
   color: var(--text-dim);
   white-space: nowrap;
   min-width: 72px;
@@ -1225,7 +1229,7 @@ footer {
 }
 .dung-code-pill {
   font-family: var(--font-mono);
-  font-size: 10px;
+  font-size: 0.75rem;
   padding: 2px 7px;
   border-radius: 999px;
   background: rgba(168,107,255,0.12);
@@ -1237,7 +1241,7 @@ footer {
   text-align: center;
 }
 .dung-dist-name {
-  font-size: 12px;
+  font-size: 0.85rem;
   color: var(--text-dim);
   flex: 1;
   white-space: nowrap;
@@ -1260,7 +1264,7 @@ footer {
 }
 .dung-dist-count {
   font-family: var(--font-mono);
-  font-size: 10px;
+  font-size: 0.75rem;
   color: var(--text-dim);
   min-width: 18px;
   text-align: right;
@@ -1282,8 +1286,8 @@ footer {
   gap: 0.5rem;
   flex-wrap: wrap;
 }
-.roll-date    { color: var(--text-dim); font-size: 0.8rem; }
-.roll-dungeon { color: var(--keystone); font-weight: 600; font-size: 0.9rem; }
+.roll-date    { color: var(--text-dim); font-size: 0.82rem; }
+.roll-dungeon { color: var(--keystone); font-weight: 600; font-size: 0.95rem; }
 .roll-assignments { display: flex; flex-direction: column; gap: 0.3rem; }
 .roll-assign  { display: flex; align-items: center; gap: 0.6rem; font-size: 0.85rem; }
 .roll-spec    { color: var(--text-dim); }
@@ -1347,18 +1351,22 @@ footer {
 /* ---- LARGE SCREENS ---- */
 /* target html so rem units scale throughout */
 @media (min-width: 1440px) {
-  html { font-size: 20px; }
+  html { font-size: 19px; }
   .view-content { max-width: 1300px; }
 }
 @media (min-width: 1920px) {
-  html { font-size: 23px; }
+  html { font-size: 21px; }
   .view-content { max-width: 1500px; }
+}
+@media (min-width: 2560px) {
+  html { font-size: 23px; }
+  .view-content { max-width: 1700px; }
 }
 
 /* ---- RESPONSIVE ---- */
 @media (max-width: 700px) {
   header { padding: 0.6rem 1rem; gap: 0.5rem; }
-  .tab { padding: 0.35rem 0.6rem; font-size: 0.75rem; }
+  .tab { padding: 0.4rem 0.7rem; font-size: 0.85rem; }
   .view-content { padding: 1rem 0.9rem; }
   .dungeon-name { font-size: 1.5rem; }
   .chronicle-body { flex-direction: column; }
@@ -2175,7 +2183,7 @@ function renderSetup() {
       + Add Player
     </button>`;
   } else {
-    rail += '<p class="notice" style="font-size:11px;margin-top:6px;">Roster full (15 max)</p>';
+    rail += '<p class="notice" style="font-size:0.8rem;margin-top:6px;">Roster full (15 max)</p>';
   }
 
   let panel = '';
