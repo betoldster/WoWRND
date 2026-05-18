@@ -35,9 +35,9 @@ Deployment is fully automated: push to `main` and Netlify CI deploys. No build c
 
 **Randomize phase state machine**: `rPhase` drives the entire Randomize view:
 - `idle` — ritual gathering (class pills, ritual slots, cast button)
-- `revealing` — vertical slot card animation running (`isAnimating = true`)
+- `revealing` — slot card animation runs, then **pauses** with all cards settled; `◆ ENTER THE KEYSTONE PHASE ◆` button (disabled during animation, enabled after) advances manually
 - `key-entry` — assignments settled, dungeon-code chip + key-level picker per player
-- `done` — Tonight's Path (gold dungeon card, party comp, copy/reroll/new-session)
+- `done` — Tonight's Path (gold dungeon card, party comp, copy/new-session)
 
 `rAssignments`, `rDungeon`, `rKeyPool`, `rKeyInputs`, `rKeyHolder`, `rKeyLevel` are populated as phases advance. `resetRandomize()` returns everything to `idle`.
 
@@ -82,14 +82,16 @@ Netlify Function v2 — uses `req.method`, `req.headers.get()`, `req.json()`, `n
 ## Game Data Constants (in `index.html`)
 
 - **`CLASSES`** — 13 classes, each with specs and eligible roles (`TANK` / `HEAL` / `DPS`).
-- **`CLASS_COLORS`** — official WoW hex color per class, used for colored player names.
+- **`CLASS_COLORS`** — official WoW hex color per class, used for colored player names and LUST/BREZ stat tiles.
 - **`SEASON_DUNGEONS`** — 8 dungeons for Mythic+ Midnight Season 1.
 - **`ROLE_COLORS`** — Tank `#3b6cd9`, Heal `#3cc977`, DPS `#e34a4a`.
 - **`DUNGEON_CODES`** — short 2–3 letter codes per dungeon (e.g. `"Skyreach": "SR"`), used in key-entry chips and Chronicle distribution.
-- **`WEEKLY_AFFIXES`** — array of strings for current week's active affixes. Update manually each week.
-- **`SEASON_LABEL`** — mono label shown in the header (e.g. `"MIDNIGHT · S1 · WEEK 9"`). Update manually.
+- **`DUNGEON_IMAGES`** — map of dungeon name → Wowhead CDN image URL, shown as artwork on the Tonight's Path card. Add entries when dungeons are added.
+- **`AFFIX_BARGAIN`**, **`AFFIX_GUILE`**, **`AFFIX_GUIDANCE`** — static affix name strings for Midnight Season 1.
+- **`affixesForLevel(level)`** — derives the correct affix tag list from a numeric key level: nothing for null, Lindormi's Guidance for 2–4, Tyrannical/Fortified + Bargain for 5–11, both forts + Guile for 12+.
+- **`SEASON_LABEL`** / **`CURRENT_SEASON`** — season strings used in the footer and page title. Update manually each season.
 
-To update when the season changes: edit `SEASON_DUNGEONS` only.  
+To update when the season changes: edit `SEASON_DUNGEONS`, `DUNGEON_IMAGES`, `SEASON_LABEL`, `CURRENT_SEASON`, and `affixesForLevel()` thresholds if needed.  
 To update after a class/spec rework: edit `CLASSES` only.
 
 ---
@@ -115,3 +117,5 @@ GROUP_PASSWORD=your_local_dev_password
 - **Design tokens**: all colors, fonts, and spacing use CSS custom properties defined on `:root`. Gold (`--gold`) is reserved for the dungeon-reveal screen only; use `--keystone` (`#a86bff`) as the primary accent everywhere else.
 - **`hidden` attribute**: elements with explicit `display` CSS need `[hidden] { display: none !important }` or `element.hidden = true` has no visual effect.
 - **`@netlify/blobs` storage**: raw string round-trip is used (`store.set(key, JSON.stringify(obj))`) rather than the `setJSON` convenience method, for reliability across package versions.
+- **Dungeon art img sizing**: the `<img>` inside `.dungeon-art` is `position: absolute; inset: 0` so its intrinsic dimensions don't drive the container height. The container height is set by the flex/grid layout. `object-fit: cover` crops the image to fill.
+- **Reveal animation pause**: `runRevealAnimation()` does NOT call `render()` or advance `rPhase` at the end. It DOM-swaps the skip button visibility and enables the advance button in place. Any `render()` call at the end would destroy the settled card DOM state. `advanceToKeystones()` is the only place that sets `rPhase = 'key-entry'` and calls `render()`.
