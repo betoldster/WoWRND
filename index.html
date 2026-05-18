@@ -2003,7 +2003,8 @@ function renderRandomize() {
     h += '<section class="section" id="slots-section">';
     h += `<div class="slot-reveal-header">
       <span></span>
-      <button class="skip-btn" onclick="skipReveal=true">SKIP ▸▸</button>
+      <button class="skip-btn" id="skip-btn-el" onclick="skipReveal=true">SKIP ▸▸</button>
+      <button class="action-primary" id="advance-btn-el" style="display:none" onclick="advanceToKeystones()">ENTER KEYSTONES →</button>
     </div>`;
     h += '<div class="slot-cards" role="status" aria-live="polite">';
     for (let i = 0; i < rAssignments.length; i++) {
@@ -2643,7 +2644,14 @@ async function runRevealAnimation(assignments) {
 
   if (!skipReveal) await sleep(500);
   isAnimating = false;
-  rPhase      = 'key-entry';
+  const skipBtn    = document.getElementById('skip-btn-el');
+  const advanceBtn = document.getElementById('advance-btn-el');
+  if (skipBtn)    skipBtn.style.display    = 'none';
+  if (advanceBtn) advanceBtn.style.display = '';
+}
+
+function advanceToKeystones() {
+  rPhase = 'key-entry';
   render();
 }
 
