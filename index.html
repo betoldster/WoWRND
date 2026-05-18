@@ -376,7 +376,7 @@ footer {
   font-weight: 800;
   flex-shrink: 0;
   position: relative;
-  overflow: visible;
+  overflow: hidden;
 }
 .avatar--22 { width: 22px; height: 22px; font-size: 10px; }
 .avatar--24 { width: 24px; height: 24px; font-size: 11px; }
@@ -386,7 +386,6 @@ footer {
 .avatar--70 { width: 70px; height: 70px; font-size: 26px; }
 .avatar--40 { width: 40px; height: 40px; font-size: 16px; }
 .avatar--48 { width: 48px; height: 48px; font-size: 18px; }
-.avatar--70 { width: 70px; height: 70px; font-size: 26px; }
 
 /* ---- CLASS PILL (idle player toggle) ---- */
 .class-pill {
@@ -1547,6 +1546,22 @@ const CLASS_COLORS = {
   'Warrior':      '#c69b6d',
 };
 
+const CLASS_ICONS = {
+  'Death Knight': 'https://wow.zamimg.com/images/wow/icons/large/classicon_deathknight.jpg',
+  'Demon Hunter': 'https://wow.zamimg.com/images/wow/icons/large/classicon_demonhunter.jpg',
+  'Druid':        'https://wow.zamimg.com/images/wow/icons/large/classicon_druid.jpg',
+  'Evoker':       'https://wow.zamimg.com/images/wow/icons/large/classicon_evoker.jpg',
+  'Hunter':       'https://wow.zamimg.com/images/wow/icons/large/classicon_hunter.jpg',
+  'Mage':         'https://wow.zamimg.com/images/wow/icons/large/classicon_mage.jpg',
+  'Monk':         'https://wow.zamimg.com/images/wow/icons/large/classicon_monk.jpg',
+  'Paladin':      'https://wow.zamimg.com/images/wow/icons/large/classicon_paladin.jpg',
+  'Priest':       'https://wow.zamimg.com/images/wow/icons/large/classicon_priest.jpg',
+  'Rogue':        'https://wow.zamimg.com/images/wow/icons/large/classicon_rogue.jpg',
+  'Shaman':       'https://wow.zamimg.com/images/wow/icons/large/classicon_shaman.jpg',
+  'Warlock':      'https://wow.zamimg.com/images/wow/icons/large/classicon_warlock.jpg',
+  'Warrior':      'https://wow.zamimg.com/images/wow/icons/large/classicon_warrior.jpg',
+};
+
 const ROLE_COLORS = { TANK: '#3b6cd9', HEAL: '#3cc977', DPS: '#e34a4a' };
 const ROLE_LABELS = { TANK: 'Tank', HEAL: 'Heal', DPS: 'DPS' };
 const ROLE_GLYPHS = { TANK: '🛡', HEAL: '✚', DPS: '⚔' };
@@ -1671,9 +1686,18 @@ function keystoneShard(size, level, color) {
 function playerAvatar(size, name, cls) {
   const color = classColor(cls);
   const initial = esc((name || '?')[0].toUpperCase());
-  return `<div class="avatar avatar--${size}"
-    style="background:linear-gradient(135deg,${color},${color}88);color:#0b0916;
-           box-shadow:0 0 0 2px var(--bg),0 0 0 3px ${color}66">${initial}</div>`;
+  const iconUrl = CLASS_ICONS[cls] || '';
+  const ring = `box-shadow:0 0 0 2px var(--bg),0 0 0 3px ${color}66`;
+  if (iconUrl) {
+    return `<div class="avatar avatar--${size}" style="background:${color}22;${ring}">` +
+      `<img src="${iconUrl}" alt="" style="width:100%;height:100%;object-fit:cover;display:block"` +
+      ` onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">` +
+      `<span style="display:none;width:100%;height:100%;align-items:center;justify-content:center;` +
+      `background:linear-gradient(135deg,${color},${color}88);color:#0b0916;font-weight:800;border-radius:50%">${initial}</span>` +
+      `</div>`;
+  }
+  return `<div class="avatar avatar--${size}"` +
+    ` style="background:linear-gradient(135deg,${color},${color}88);color:#0b0916;${ring}">${initial}</div>`;
 }
 
 function computeComp(assignments) {
