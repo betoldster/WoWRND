@@ -823,6 +823,19 @@ footer {
   overflow: hidden;
   box-shadow: 0 0 40px var(--gold-glow);
 }
+.dungeon-art {
+  height: 200px;
+  overflow: hidden;
+  border-bottom: 1px solid rgba(255,201,77,0.15);
+  position: relative;
+}
+.dungeon-art img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 30%;
+  display: block;
+}
 .dungeon-art-placeholder {
   height: 200px;
   display: flex;
@@ -1507,6 +1520,16 @@ const DUNGEON_CODES = {
   "Skyreach":                "SR",
   "Pit of Saron":            "POS",
 };
+const DUNGEON_IMAGES = {
+  "Magister's Terrace":      "https://wow.zamimg.com/uploads/screenshots/normal/1275069-magisters-terrace.jpg",
+  "Windrunner Spire":        "https://wow.zamimg.com/uploads/screenshots/normal/1279817-windrunner-spire.jpg",
+  "Algeth'ar Academy":       "https://wow.zamimg.com/uploads/guide/header/9fa0dd03a6fd762ead3b4f5af10720d918c9680a.jpg",
+  "Nexus-Point Xenas":       "https://wow.zamimg.com/uploads/guide/header/87479048e126683e5dca4e3718fb0491e166b14c.jpg",
+  "Pit of Saron":            "https://wow.zamimg.com/uploads/screenshots/normal/510439-pit-of-saron.jpg",
+  "Seat of the Triumvirate": "https://wow.zamimg.com/uploads/screenshots/normal/692975-the-seat-of-the-triumvirate.jpg",
+  "Skyreach":                "https://wow.zamimg.com/uploads/screenshots/normal/436093-skyreach.jpg",
+  "Maisara Caverns":         "https://wow.zamimg.com/uploads/guide/header/0dd06ff24a767e0569f6b1020b5280ce66e38a87.jpg",
+};
 
 const WEEKLY_AFFIXES = ["Tyrannical", "Xal'atath's Bargain", "Xal'atath's Guile"];
 const SEASON_LABEL   = "MIDNIGHT · S1 · WEEK 9";
@@ -2084,7 +2107,12 @@ function renderRandomize() {
 
     // ---- Left: dungeon card ----
     h += '<div class="final-dungeon-card">';
-    h += '<div class="dungeon-art-placeholder">DUNGEON ART · DROP HERE</div>';
+    const dungeonImg = DUNGEON_IMAGES[rDungeon];
+    if (dungeonImg) {
+      h += `<div class="dungeon-art"><img src="${dungeonImg}" alt="${esc(rDungeon)}" loading="lazy"></div>`;
+    } else {
+      h += '<div class="dungeon-art-placeholder">DUNGEON ART · DROP HERE</div>';
+    }
     h += '<div class="dungeon-card-body">';
     h += '<div class="dungeon-reveal-row">';
     h += keystoneShard(42, rKeyLevel, '#ffc94d');
