@@ -2109,9 +2109,9 @@ function renderRandomize() {
     h += '<div class="final-dungeon-card">';
     const dungeonImg = DUNGEON_IMAGES[rDungeon];
     if (dungeonImg) {
-      h += `<div class="dungeon-art"><img src="${dungeonImg}" alt="${esc(rDungeon)}" loading="lazy"></div>`;
+      h += `<div class="dungeon-art" id="dungeon-art-el"><img src="${dungeonImg}" alt="${esc(rDungeon)}" loading="lazy"></div>`;
     } else {
-      h += '<div class="dungeon-art-placeholder">DUNGEON ART · DROP HERE</div>';
+      h += '<div class="dungeon-art-placeholder" id="dungeon-art-el">DUNGEON ART · DROP HERE</div>';
     }
     h += '<div class="dungeon-card-body">';
     h += '<div class="dungeon-reveal-row">';
@@ -2732,6 +2732,14 @@ async function runDungeonReveal(dungeon, keyHolder, keyLevel) {
 
   rDungeon    = dungeon;
   isAnimating = false;
+
+  // Inject dungeon art now that the dungeon is known (initial render had rDungeon='')
+  const artEl = document.getElementById('dungeon-art-el');
+  const img   = DUNGEON_IMAGES[dungeon];
+  if (artEl && img) {
+    artEl.className = 'dungeon-art';
+    artEl.innerHTML = `<img src="${img}" alt="${esc(dungeon)}" loading="lazy">`;
+  }
 
   // Persist to history
   const roll = {
