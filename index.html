@@ -1564,18 +1564,31 @@ const DUNGEON_CODES = {
 const WEEKLY_AFFIXES = ["Tyrannical", "Xal'atath's Bargain", "Xal'atath's Guile"];
 const SEASON_LABEL   = "MIDNIGHT · S1 · WEEK 9";
 
-// Comp analysis constants
-const LUST_CLASSES = new Set(['Shaman', 'Mage', 'Hunter', 'Evoker', 'Monk']);
-const BREZ_CLASSES = new Set(['Druid', 'Demon Hunter', 'Warlock', 'Death Knight']);
-// Specs without a reliable hard interrupt — "Class/Spec" format
-const NO_INTERRUPT_SPECS = new Set(['Priest/Holy']);
-// Melee specs — everything else is treated as ranged
+// Comp analysis constants — verified against Midnight Season 1 (patch 12.0.5)
+// Lust: Shaman (Bloodlust/Heroism), Mage (Time Warp), Hunter (all specs via ferocity
+// pet or MM native Harrier's Cry), Evoker (Fury of the Aspects). Monk has NO lust.
+const LUST_CLASSES = new Set(['Shaman', 'Mage', 'Hunter', 'Evoker']);
+// Battle rez: Druid (Rebirth), Warlock (Soulstone), Death Knight (Raise Ally).
+// Demon Hunter and Monk have NO combat rez.
+const BREZ_CLASSES = new Set(['Druid', 'Warlock', 'Death Knight']);
+// Specs without a reliable hard interrupt (Midnight removed interrupts from all
+// healer specs except Restoration Shaman). Format: "Class/Spec".
+const NO_INTERRUPT_SPECS = new Set([
+  'Priest/Holy', 'Priest/Discipline',
+  'Paladin/Holy',
+  'Druid/Restoration',
+  'Monk/Mistweaver',
+  'Evoker/Preservation',
+]);
+// Melee specs — everything else is treated as ranged.
+// Mistweaver Monk is a confirmed melee healer.
+// Devourer DH has 25-yard spell range and is treated as ranged.
 const MELEE_SPECS = new Set([
   'Death Knight/Blood',   'Death Knight/Frost',   'Death Knight/Unholy',
-  'Demon Hunter/Havoc',   'Demon Hunter/Vengeance','Demon Hunter/Devourer',
+  'Demon Hunter/Havoc',   'Demon Hunter/Vengeance',
   'Druid/Feral',          'Druid/Guardian',
   'Hunter/Survival',
-  'Monk/Brewmaster',      'Monk/Windwalker',
+  'Monk/Brewmaster',      'Monk/Mistweaver',       'Monk/Windwalker',
   'Paladin/Holy',         'Paladin/Protection',    'Paladin/Retribution',
   'Rogue/Assassination',  'Rogue/Outlaw',          'Rogue/Subtlety',
   'Shaman/Enhancement',
