@@ -2034,7 +2034,7 @@ function renderRandomize() {
     h += '<div class="keystones-left">';
     h += '<div class="key-player-rows">';
     for (const a of rAssignments) {
-      const ki       = rKeyInputs[a.playerId] || { dungeon: null, level: 8 };
+      const ki       = rKeyInputs[a.playerId] || { dungeon: null, level: 10 };
       const hasDungeon = ki.dungeon != null;
       const cc = classColor(a.class);
       h += `<div class="key-player-row${hasDungeon ? ' has-key' : ''}" style="${hasDungeon ? 'border-left-color:'+cc+';' : ''}">`;
@@ -2659,7 +2659,7 @@ function advanceToKeystones() {
 
 
 function setPlayerDungeon(playerId, dungeon) {
-  const ki = rKeyInputs[playerId] || { dungeon: null, level: 8 };
+  const ki = rKeyInputs[playerId] || { dungeon: null, level: 10 };
   // Toggle off if same dungeon clicked again
   rKeyInputs[playerId] = { ...ki, dungeon: ki.dungeon === dungeon ? null : dungeon };
   render();
