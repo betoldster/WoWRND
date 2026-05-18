@@ -813,7 +813,7 @@ footer {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 320px;
   gap: 28px;
-  align-items: flex-start;
+  align-items: stretch;
   margin-bottom: 20px;
 }
 .final-dungeon-card {
@@ -822,9 +822,12 @@ footer {
   border-radius: 12px;
   overflow: hidden;
   box-shadow: 0 0 40px var(--gold-glow);
+  display: flex;
+  flex-direction: column;
 }
 .dungeon-art {
-  height: 200px;
+  flex: 1;
+  min-height: 200px;
   overflow: hidden;
   border-bottom: 1px solid rgba(255,201,77,0.15);
   position: relative;
