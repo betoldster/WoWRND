@@ -375,6 +375,7 @@ footer {
   overflow: visible;
 }
 .avatar--22 { width: 22px; height: 22px; font-size: 10px; }
+.avatar--24 { width: 24px; height: 24px; font-size: 11px; }
 .avatar--28 { width: 28px; height: 28px; font-size: 12px; }
 .avatar--32 { width: 32px; height: 32px; font-size: 13px; }
 .avatar--36 { width: 36px; height: 36px; font-size: 14px; }
@@ -1132,24 +1133,143 @@ footer {
   100% { opacity: 0; }
 }
 
-/* ---- HISTORY VIEW ---- */
-.history-total { color: var(--text-dim); font-size: 0.85rem; margin-bottom: 1.25rem; }
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-  gap: 0.75rem;
-  margin-bottom: 1.5rem;
-}
-.stat-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 8px; padding: 0.9rem 1rem; }
-.stat-name  { font-weight: 600; margin-bottom: 0.6rem; }
-.stat-bar-row   { display: flex; align-items: center; gap: 0.5rem; margin: 0.35rem 0; }
-.stat-bar-track { flex: 1; background: var(--bg3); border-radius: 3px; height: 10px; overflow: hidden; }
-.stat-bar-fill  { height: 100%; border-radius: 3px; transition: width 0.5s ease; }
-.stat-count     { font-size: 0.75rem; color: var(--text-dim); min-width: 70px; }
+/* ---- CHRONICLE (HISTORY VIEW) ---- */
 
+/* Hero stats row */
+.hero-stats-row {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+.hero-stat-card {
+  flex: 1 1 140px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px 16px;
+}
+.hero-stat-label {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--text-mute);
+  letter-spacing: 0.2em;
+  margin-bottom: 6px;
+}
+.hero-stat-value {
+  font-family: var(--font-display);
+  font-size: 1.75rem;
+  font-weight: 700;
+  line-height: 1;
+  margin-bottom: 3px;
+}
+.hero-stat-caption {
+  font-size: 11px;
+  color: var(--text-dim);
+  font-family: var(--font-mono);
+}
+
+/* Two-column body */
+.chronicle-body {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+}
+.chronicle-left  { flex: 1 1 300px; min-width: 0; }
+.chronicle-right { flex: 1 1 260px; min-width: 0; }
+.chronicle-col-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-mute);
+  letter-spacing: 0.2em;
+  margin-bottom: 12px;
+}
+
+/* Stacked role bar cards */
+.role-dist-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 14px;
+  margin-bottom: 6px;
+}
+.role-dist-player { min-width: 60px; flex-shrink: 0; }
+.role-dist-name   { font-size: 12px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.stacked-bar-wrap { flex: 1; display: flex; flex-direction: column; gap: 3px; }
+.stacked-bar {
+  height: 14px;
+  border-radius: 3px;
+  overflow: hidden;
+  display: flex;
+}
+.stacked-bar__seg { height: 100%; transition: width 0.5s ease; }
+.role-dist-counts {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-dim);
+  white-space: nowrap;
+  min-width: 72px;
+  text-align: right;
+}
+
+/* Dungeon distribution */
+.dung-dist-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 7px;
+}
+.dung-code-pill {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: rgba(168,107,255,0.12);
+  border: 1px solid var(--keystone-dim);
+  color: var(--keystone);
+  letter-spacing: 0.05em;
+  flex-shrink: 0;
+  min-width: 34px;
+  text-align: center;
+}
+.dung-dist-name {
+  font-size: 12px;
+  color: var(--text-dim);
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.dung-bar-track {
+  width: 70px;
+  height: 6px;
+  background: var(--bg-raised);
+  border-radius: 3px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.dung-bar-fill {
+  height: 100%;
+  background: var(--keystone);
+  border-radius: 3px;
+  transition: width 0.5s ease;
+}
+.dung-dist-count {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-dim);
+  min-width: 18px;
+  text-align: right;
+}
+
+/* Recent roll list */
 .roll-list  { display: flex; flex-direction: column; gap: 0.75rem; margin-bottom: 1.25rem; }
 .roll-entry {
-  background: var(--bg2);
+  background: var(--bg-surface);
   border: 1px solid var(--border);
   border-radius: 8px;
   padding: 0.9rem 1rem;
@@ -1163,7 +1283,7 @@ footer {
   flex-wrap: wrap;
 }
 .roll-date    { color: var(--text-dim); font-size: 0.8rem; }
-.roll-dungeon { color: var(--gold); font-weight: 600; font-size: 0.9rem; }
+.roll-dungeon { color: var(--keystone); font-weight: 600; font-size: 0.9rem; }
 .roll-assignments { display: flex; flex-direction: column; gap: 0.3rem; }
 .roll-assign  { display: flex; align-items: center; gap: 0.6rem; font-size: 0.85rem; }
 .roll-spec    { color: var(--text-dim); }
@@ -1241,7 +1361,9 @@ footer {
   .tab { padding: 0.35rem 0.6rem; font-size: 0.75rem; }
   .view-content { padding: 1rem 0.9rem; }
   .dungeon-name { font-size: 1.5rem; }
-  .stats-grid { grid-template-columns: 1fr; }
+  .chronicle-body { flex-direction: column; }
+  .hero-stats-row { flex-wrap: wrap; }
+  .hero-stat-card { flex: 1 1 calc(50% - 5px); }
   .slot-cards { flex-direction: column; }
   .slot-card { min-height: unset; flex-direction: row; align-items: flex-start; padding: 12px; }
   .slot-portrait { width: 48px; height: 48px; flex-shrink: 0; }
@@ -1264,9 +1386,7 @@ footer {
 }
 .active-count-warn { animation: flash-warn 0.5s ease; }
 
-/* ---- DUNGEON DISTRIBUTION ---- */
-.dungeon-dist { display: flex; flex-direction: column; gap: 0.4rem; max-width: 600px; margin-bottom: 1.5rem; }
-.dungeon-dist-name { min-width: 160px; font-size: 0.85rem; color: var(--text); flex-shrink: 0; }
+/* mobile: chronicle body stacks */
 </style>
 </head>
 <body>
@@ -2199,103 +2319,167 @@ function renderHistory() {
   const players = appState.players || [];
 
   let h = '<div class="view-content">';
-  h += `<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.5rem;margin-bottom:1.25rem">
-    <h2 class="section-title" style="margin-bottom:0">History</h2>
+
+  // Header row with export + reset buttons
+  h += `<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.5rem;margin-bottom:1.5rem">
+    <div class="phase-tag" style="margin-bottom:0">◆ CHRONICLE</div>
     <div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap">
-      <span class="history-total">Total rolls: <strong>${history.length}</strong></span>
       <button class="btn small" onclick="handleExportHistory()" ${history.length === 0 ? 'disabled' : ''}>📥 Export</button>
       <button class="btn danger small" id="clear-history-btn" onclick="handleClearHistory()" ${history.length === 0 ? 'disabled' : ''}>Reset History</button>
     </div>
   </div>`;
 
-  // Per-player role distribution + dungeon distribution
-  if (players.length > 0 && history.length > 0) {
-    const stats = {};
-    for (const p of players) stats[p.id] = { name: p.name, TANK: 0, HEAL: 0, DPS: 0, total: 0 };
-    for (const roll of history) {
-      for (const a of (roll.assignments || [])) {
-        if (stats[a.playerId]) {
-          stats[a.playerId][a.role] = (stats[a.playerId][a.role] || 0) + 1;
-          stats[a.playerId].total++;
-        }
+  if (history.length === 0) {
+    h += '<p class="notice">No rolls yet.</p>';
+    h += '</div>';
+    main.innerHTML = h;
+    return;
+  }
+
+  // ---- Build stats ----
+  const playerStats = {};
+  for (const p of players) {
+    playerStats[p.id] = { name: p.name, cls: Object.keys(p.specs || {})[0] || '', TANK: 0, HEAL: 0, DPS: 0, total: 0 };
+  }
+  for (const roll of history) {
+    for (const a of (roll.assignments || [])) {
+      if (!playerStats[a.playerId]) {
+        playerStats[a.playerId] = { name: a.playerName, cls: a.class || '', TANK: 0, HEAL: 0, DPS: 0, total: 0 };
       }
+      playerStats[a.playerId][a.role] = (playerStats[a.playerId][a.role] || 0) + 1;
+      playerStats[a.playerId].total++;
+      if (!playerStats[a.playerId].cls) playerStats[a.playerId].cls = a.class || '';
     }
+  }
 
-    const activeStat = Object.values(stats).filter(s => s.total > 0);
-    if (activeStat.length > 0) {
-      h += '<section class="section">';
-      h += '<h3 class="subsection-title">Role Distribution</h3>';
-      h += `<p class="notice" style="margin-bottom:0.75rem">Based on all ${history.length} roll${history.length === 1 ? '' : 's'}</p>`;
-      h += '<div class="stats-grid">';
-      for (const s of activeStat) {
-        const pct = r => Math.round((r / s.total) * 100);
-        h += `<div class="stat-card">
-          <div class="stat-name">${esc(s.name)}</div>
-          <div class="stat-bar-group">
-            ${['TANK','HEAL','DPS'].map(role => `
-              <div class="stat-bar-row">
-                ${roleBadge(role)}
-                <div class="stat-bar-track">
-                  <div class="stat-bar-fill" style="width:${pct(s[role])}%;background:${ROLE_COLORS[role]}"></div>
-                </div>
-                <span class="stat-count">${s[role]} (${pct(s[role])}%)</span>
-              </div>`
-            ).join('')}
-          </div>
-        </div>`;
-      }
-      h += '</div></section>';
-    }
+  // Hero stats computations
+  const nights = new Set(history.map(r => r.rolledAt ? r.rolledAt.slice(0, 10) : '')).size;
+  const dungeonTally = {};
+  for (const roll of history) {
+    if (roll.dungeon) dungeonTally[roll.dungeon] = (dungeonTally[roll.dungeon] || 0) + 1;
+  }
+  const topDungeonEntry = Object.entries(dungeonTally).sort((a, b) => b[1] - a[1])[0];
+  const topDungeon  = topDungeonEntry ? topDungeonEntry[0] : null;
+  const topDungeonN = topDungeonEntry ? topDungeonEntry[1] : 0;
 
-    // Dungeon distribution
-    const dungeonCounts = SEASON_DUNGEONS.map(d => ({
-      name: d, count: history.filter(r => r.dungeon === d).length,
-    })).sort((a, b) => b.count - a.count);
-    const maxDungeonCount = Math.max(...dungeonCounts.map(d => d.count), 1);
+  const withRolls = Object.values(playerStats).filter(s => s.total > 0);
+  const topTank = withRolls.slice().sort((a, b) => b.TANK - a.TANK)[0];
+  const topHeal = withRolls.slice().sort((a, b) => b.HEAL - a.HEAL)[0];
 
-    h += '<section class="section">';
-    h += '<h3 class="subsection-title">Dungeon Distribution</h3>';
-    h += '<div class="dungeon-dist">';
-    for (const d of dungeonCounts) {
-      h += `<div class="stat-bar-row">
-        <span class="dungeon-dist-name">${esc(d.name)}</span>
-        <div class="stat-bar-track" style="flex:1">
-          <div class="stat-bar-fill" style="width:${Math.round(d.count / maxDungeonCount * 100)}%;background:var(--gold-dim)"></div>
+  // ---- Hero stats row ----
+  h += '<div class="hero-stats-row">';
+  // Card 1: Total rolls
+  h += `<div class="hero-stat-card">
+    <div class="hero-stat-label">TOTAL ROLLS</div>
+    <div class="hero-stat-value">${history.length}</div>
+    <div class="hero-stat-caption">over ${nights} night${nights !== 1 ? 's' : ''}</div>
+  </div>`;
+  // Card 2: Most rolled dungeon
+  if (topDungeon) {
+    h += `<div class="hero-stat-card">
+      <div class="hero-stat-label">MOST ROLLED</div>
+      <div class="hero-stat-value" style="font-size:1.1rem;color:var(--gold)">${esc(topDungeon)}</div>
+      <div class="hero-stat-caption">${topDungeonN} time${topDungeonN !== 1 ? 's' : ''}</div>
+    </div>`;
+  }
+  // Card 3: Top tank
+  if (topTank && topTank.TANK > 0) {
+    const cc = classColor(topTank.cls);
+    h += `<div class="hero-stat-card">
+      <div class="hero-stat-label">TOP TANK</div>
+      <div class="hero-stat-value" style="font-size:1.1rem;color:${cc}">${esc(topTank.name)}</div>
+      <div class="hero-stat-caption">${topTank.TANK} of ${topTank.total} rolls</div>
+    </div>`;
+  }
+  // Card 4: Top heal
+  if (topHeal && topHeal.HEAL > 0) {
+    const cc = classColor(topHeal.cls);
+    h += `<div class="hero-stat-card">
+      <div class="hero-stat-label">TOP HEAL</div>
+      <div class="hero-stat-value" style="font-size:1.1rem;color:${cc}">${esc(topHeal.name)}</div>
+      <div class="hero-stat-caption">${topHeal.HEAL} of ${topHeal.total} rolls</div>
+    </div>`;
+  }
+  h += '</div>';
+
+  // ---- Two-column body: role dist + dungeon dist ----
+  h += '<div class="chronicle-body">';
+
+  // Left: role distribution (stacked bars)
+  const activeStat = withRolls.sort((a, b) => b.total - a.total);
+  if (activeStat.length > 0) {
+    h += '<div class="chronicle-left">';
+    h += '<div class="chronicle-col-label">ROLE DISTRIBUTION</div>';
+    for (const s of activeStat) {
+      const total = s.total || 1;
+      const tw = Math.round((s.TANK / total) * 100);
+      const hw = Math.round((s.HEAL / total) * 100);
+      const dw = 100 - tw - hw;
+      const cc = classColor(s.cls);
+      h += `<div class="role-dist-card">
+        <div class="role-dist-player">
+          ${playerAvatar(24, s.name, s.cls)}
+          <div class="role-dist-name" style="color:${cc};margin-top:4px">${esc(s.name)}</div>
         </div>
-        <span class="stat-count">${d.count}</span>
+        <div class="stacked-bar-wrap">
+          <div class="stacked-bar">
+            <div class="stacked-bar__seg" style="width:${tw}%;background:${ROLE_COLORS.TANK}"></div>
+            <div class="stacked-bar__seg" style="width:${hw}%;background:${ROLE_COLORS.HEAL}"></div>
+            <div class="stacked-bar__seg" style="width:${dw}%;background:${ROLE_COLORS.DPS}"></div>
+          </div>
+        </div>
+        <div class="role-dist-counts">T·${s.TANK}&nbsp;&nbsp;H·${s.HEAL}&nbsp;&nbsp;D·${s.DPS}</div>
       </div>`;
     }
-    h += '</div></section>';
+    h += '</div>';
   }
 
-  // Recent rolls
-  const recent = history.slice(0, 30);
-  if (recent.length > 0) {
-    h += '<section class="section">';
-    h += '<h3 class="subsection-title">Recent Rolls</h3>';
-    h += '<div class="roll-list">';
-    for (const roll of recent) {
-      const date = new Date(roll.rolledAt).toLocaleString('de-DE', { timeZone: 'Europe/Berlin' });
-      h += `<div class="roll-entry">
-        <div class="roll-header">
-          <span class="roll-date">${esc(date)}</span>
-          <span class="roll-dungeon">${esc(roll.dungeon || '—')}</span>
-          <button class="btn small danger" onclick="handleDeleteRoll('${esc(roll.id)}')">Delete</button>
-        </div>
-        <div class="roll-assignments">`;
-      for (const a of (roll.assignments || [])) {
-        h += `<div class="roll-assign">
-          ${roleBadge(a.role)}
-          <span style="color:${classColor(a.class)}">${esc(a.playerName)}</span>
-          <span class="roll-spec">${esc(a.spec)} ${esc(a.class)}</span>
-        </div>`;
-      }
-      h += '</div></div>';
-    }
-    h += '</div></section>';
-  } else {
-    h += '<p class="notice">No rolls yet.</p>';
+  // Right: dungeon distribution
+  const dungeonCounts = Object.keys(DUNGEON_CODES).map(d => ({
+    name: d, code: DUNGEON_CODES[d], count: history.filter(r => r.dungeon === d).length,
+  })).sort((a, b) => b.count - a.count);
+  const maxCount = Math.max(...dungeonCounts.map(d => d.count), 1);
+
+  h += '<div class="chronicle-right">';
+  h += '<div class="chronicle-col-label">DUNGEON DISTRIBUTION</div>';
+  for (const d of dungeonCounts) {
+    const barW = Math.round((d.count / maxCount) * 100);
+    h += `<div class="dung-dist-row">
+      <span class="dung-code-pill">${esc(d.code)}</span>
+      <span class="dung-dist-name">${esc(d.name)}</span>
+      <div class="dung-bar-track"><div class="dung-bar-fill" style="width:${barW}%"></div></div>
+      <span class="dung-dist-count">${d.count}</span>
+    </div>`;
   }
+  h += '</div>';
+
+  h += '</div>'; // chronicle-body
+
+  // ---- Recent rolls ----
+  const recent = history.slice(0, 30);
+  h += `<div style="margin-top:24px">
+    <div class="chronicle-col-label">RECENT ROLLS</div>
+    <div class="roll-list">`;
+  for (const roll of recent) {
+    const date    = new Date(roll.rolledAt).toLocaleString('de-DE', { timeZone: 'Europe/Berlin' });
+    const keyInfo = roll.keyLevel != null ? ` +${roll.keyLevel}` : '';
+    h += `<div class="roll-entry">
+      <div class="roll-header">
+        <span class="roll-date">${esc(date)}</span>
+        <span class="roll-dungeon">${keyInfo ? esc(keyInfo) + ' ' : ''}${esc(roll.dungeon || '—')}</span>
+        <button class="btn small danger" onclick="handleDeleteRoll('${esc(roll.id)}')">Delete</button>
+      </div>
+      <div class="roll-assignments">`;
+    for (const a of (roll.assignments || [])) {
+      h += `<div class="roll-assign">
+        ${roleBadge(a.role)}
+        <span style="color:${classColor(a.class)}">${esc(a.playerName)}</span>
+        <span class="roll-spec">${esc(a.spec)} ${esc(a.class)}</span>
+      </div>`;
+    }
+    h += '</div></div>';
+  }
+  h += '</div></div>';
 
   h += '</div>';
   main.innerHTML = h;
