@@ -704,36 +704,40 @@ footer {
 /* ---- KEYSTONES SCREEN ---- */
 .keystones-layout {
   display: flex;
-  gap: 20px;
+  gap: 24px;
   align-items: flex-start;
   flex-wrap: wrap;
 }
-.keystones-left  { flex: 1 1 600px; }
-.keystones-right { flex: 0 0 220px; min-width: 200px; }
+.keystones-left  { flex: 1 1 560px; }
+.keystones-right { flex: 0 0 240px; min-width: 220px; }
 
 .key-player-rows { display: flex; flex-direction: column; gap: 10px; margin-bottom: 12px; }
 .key-player-row {
-  display: grid;
-  grid-template-columns: 36px 110px 1fr auto;
-  gap: 12px;
-  align-items: center;
   background: var(--bg-surface);
   border: 1px solid var(--border);
+  border-left: 3px solid transparent;
   border-radius: 10px;
-  padding: 10px 14px;
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
   transition: border-color 0.15s;
 }
-.key-player-row.has-key { border-color: var(--border-bright); }
-.key-player-info { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-.key-player-name-text { font-size: 0.95rem; font-weight: 700; line-height: 1.15; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.key-player-spec-line { font-size: 0.75rem; font-family: var(--font-mono); color: var(--text-dim); letter-spacing: 0.04em; white-space: nowrap; }
-.key-dungeons { display: flex; flex-wrap: wrap; gap: 5px; }
+.key-player-row.has-key { border-left-color: var(--keystone); border-color: var(--border-bright); }
+.key-player-top {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.key-player-info { flex: 1; min-width: 0; }
+.key-player-name-text { font-size: 0.95rem; font-weight: 700; line-height: 1.15; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
+.key-player-spec-line { font-size: 0.75rem; font-family: var(--font-mono); color: var(--text-dim); letter-spacing: 0.04em; white-space: nowrap; display: block; }
+.key-dungeons { display: flex; flex-wrap: wrap; gap: 6px; }
 .key-level-area {
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 6px;
   flex-shrink: 0;
-  justify-content: flex-end;
 }
 .key-level-btn {
   background: var(--bg-raised);
@@ -796,9 +800,6 @@ footer {
 
 /* mobile: stack at narrow width */
 @media (max-width: 700px) {
-  .key-player-row { grid-template-columns: 32px 1fr; grid-template-rows: auto auto auto; }
-  .key-level-area { grid-column: 2; }
-  .key-dungeons   { grid-column: 1 / -1; }
   .keystones-right { flex: 1 1 100%; }
 }
 
@@ -2006,27 +2007,17 @@ function renderRandomize() {
     for (const a of rAssignments) {
       const ki       = rKeyInputs[a.playerId] || { dungeon: null, level: 8 };
       const hasDungeon = ki.dungeon != null;
-      h += `<div class="key-player-row${hasDungeon ? ' has-key' : ''}">`;
+      const cc = classColor(a.class);
+      h += `<div class="key-player-row${hasDungeon ? ' has-key' : ''}" style="${hasDungeon ? 'border-left-color:'+cc+';' : ''}">`;
 
-      // Avatar
-      h += playerAvatar(32, a.playerName, a.class);
-
-      // Name + spec caption
+      // Top row: avatar + name/spec + level widget
+      h += '<div class="key-player-top">';
+      h += playerAvatar(36, a.playerName, a.class);
       h += `<div class="key-player-info">
-        <span class="key-player-name-text" style="color:${classColor(a.class)}">${esc(a.playerName)}</span>
+        <span class="key-player-name-text" style="color:${cc}">${esc(a.playerName)}</span>
         <span class="key-player-spec-line">${esc(a.spec)} · ${esc(a.class)}</span>
       </div>`;
-
-      // Dungeon code chips
-      h += '<div class="key-dungeons">';
-      for (const [dName, dCode] of Object.entries(DUNGEON_CODES)) {
-        const sel = ki.dungeon === dName;
-        h += `<button class="dungeon-code${sel ? ' dungeon-code--selected' : ''}"
-          onclick="setPlayerDungeon('${esc(a.playerId)}','${esc(dName)}')">${esc(dCode)}</button>`;
-      }
-      h += '</div>';
-
-      // Key level area
+      // Level widget (right side of top row)
       h += '<div class="key-level-area">';
       if (hasDungeon) {
         const lvl = ki.level || 8;
@@ -2035,6 +2026,16 @@ function renderRandomize() {
         h += `<button class="key-level-btn" onclick="setPlayerLevel('${esc(a.playerId)}',1)">+</button>`;
       } else {
         h += '<span class="no-key-label">NO KEY</span>';
+      }
+      h += '</div>';
+      h += '</div>'; // key-player-top
+
+      // Dungeon code chips — full-width row
+      h += '<div class="key-dungeons">';
+      for (const [dName, dCode] of Object.entries(DUNGEON_CODES)) {
+        const sel = ki.dungeon === dName;
+        h += `<button class="dungeon-code${sel ? ' dungeon-code--selected' : ''}"
+          onclick="setPlayerDungeon('${esc(a.playerId)}','${esc(dName)}')">${esc(dCode)}</button>`;
       }
       h += '</div>';
 
