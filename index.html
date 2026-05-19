@@ -2648,7 +2648,7 @@ async function runRevealAnimation(assignments) {
   isAnimating = false;
   const skipBtn    = document.getElementById('skip-btn-el');
   const advanceBtn = document.getElementById('advance-btn-el');
-  if (skipBtn)    skipBtn.style.display = 'none';
+  if (skipBtn)    { skipBtn.disabled = true; skipBtn.style.opacity = '0.35'; skipBtn.style.cursor = 'default'; }
   if (advanceBtn) advanceBtn.disabled   = false;
 }
 
