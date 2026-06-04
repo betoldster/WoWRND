@@ -3372,12 +3372,13 @@ function renderZ2HReady() {
   h += '<div style="color:var(--text-mute);font-size:0.82rem;font-family:var(--font-mono);margin-top:6px">All bans are locked in. Destiny awaits.</div>';
   h += '</div>';
 
-  h += '<ul class="z2h-oath-list">';
+  h += '<div style="max-width:480px;margin:0 auto 28px">';
+  h += '<ul class="z2h-oath-list" style="margin-bottom:0">';
   for (const p of z2hPlayers) {
     const banText = p.bans.length === 0 ? 'No specs sealed' : `${p.bans.length} spec${p.bans.length !== 1 ? 's' : ''} sealed away`;
     h += `<li class="z2h-oath-item"><span class="z2h-oath-name">${esc(p.name)}</span><span class="z2h-oath-bans">${banText}</span></li>`;
   }
-  h += '</ul>';
+  h += '</ul></div>';
 
   h += '<div style="display:flex;gap:12px;align-items:center;justify-content:center">';
   h += '<button class="action-primary" onclick="handleZ2HRoll()">⚔ ROLL DESTINY ⚔</button>';
