@@ -1355,7 +1355,7 @@ footer {
 }
 .z2h-card--settling { animation: z2h-card-settle 0.5s ease; }
 
-.z2h-player-pick { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 10px; }
+.z2h-player-pick { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 10px; justify-content: center; }
 .z2h-player-chip {
   padding: 8px 16px;
   border-radius: 8px;
@@ -1369,14 +1369,17 @@ footer {
 .z2h-player-chip.selected { border-color: var(--keystone); background: rgba(168,107,255,0.1); color: var(--keystone); }
 .z2h-player-chip.pick-capped:not(.selected) { opacity: 0.3; cursor: not-allowed; }
 
-.z2h-spec-grid { display: flex; flex-wrap: wrap; gap: 6px; }
+.z2h-class-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 8px; margin-bottom: 16px; }
+.z2h-class-group { border-radius: 8px; padding: 10px; border: 1px solid var(--border); }
+.z2h-class-header { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.09em; margin-bottom: 7px; text-transform: uppercase; }
+.z2h-spec-grid { display: flex; flex-wrap: wrap; gap: 5px; }
 .z2h-spec-pill {
-  padding: 5px 11px;
+  padding: 3px 9px;
   border-radius: 20px;
   border: 1px solid var(--border);
-  background: var(--bg-surface);
+  background: var(--bg-raised);
   cursor: pointer;
-  font-size: 0.82rem;
+  font-size: 0.78rem;
   color: var(--text-dim);
   transition: border-color 0.15s, opacity 0.15s, color 0.15s;
   user-select: none;
@@ -1384,9 +1387,6 @@ footer {
 .z2h-spec-pill:hover:not(.ban-capped) { border-color: var(--border-bright); color: var(--text); }
 .z2h-spec-pill.banned { border-color: var(--dps); color: var(--dps); opacity: 0.55; text-decoration: line-through; }
 .z2h-spec-pill.ban-capped:not(.banned) { opacity: 0.28; cursor: not-allowed; }
-
-.z2h-class-group { margin-bottom: 14px; }
-.z2h-class-header { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.1em; margin-bottom: 6px; text-transform: uppercase; }
 
 .z2h-oath-list { list-style: none; padding: 0; margin: 0 0 28px; display: flex; flex-direction: column; gap: 8px; }
 .z2h-oath-item {
@@ -3308,7 +3308,7 @@ function renderZ2HIdle() {
   if (players.length < 5) {
     h += '<div style="text-align:center;color:var(--text-mute);font-family:var(--font-mono);font-size:0.88rem">Add at least 5 players to the Roster first.</div>';
   } else {
-    h += '<div style="font-family:var(--font-mono);font-size:0.75rem;letter-spacing:0.1em;color:var(--text-mute);margin-bottom:10px">SELECT 5 ADVENTURERS</div>';
+    h += '<div style="font-family:var(--font-mono);font-size:0.75rem;letter-spacing:0.1em;color:var(--text-mute);margin-bottom:10px;text-align:center">SELECT 5 ADVENTURERS</div>';
     h += '<div class="z2h-player-pick">';
     for (const p of players) {
       const sel = z2hSelected.has(p.id);
@@ -3316,7 +3316,7 @@ function renderZ2HIdle() {
       h += `<button class="z2h-player-chip${sel ? ' selected' : ''}${cap ? ' pick-capped' : ''}" onclick="z2hTogglePlayer('${p.id}')">${esc(p.name)}</button>`;
     }
     h += '</div>';
-    h += `<div style="font-family:var(--font-mono);font-size:0.78rem;color:var(--text-mute);margin-bottom:24px">${z2hSelected.size} / 5 chosen</div>`;
+    h += `<div style="font-family:var(--font-mono);font-size:0.78rem;color:var(--text-mute);margin-bottom:24px;text-align:center">${z2hSelected.size} / 5 chosen</div>`;
     h += `<div class="center"><button class="action-primary"${z2hSelected.size < 5 ? ' disabled' : ''} onclick="z2hBeginOath()">⚔ BEGIN THE OATH ⚔</button></div>`;
   }
   h += '</div>';
@@ -3329,30 +3329,32 @@ function renderZ2HBanning() {
   const capped = z2hCurrentBans.length >= 5;
   let h = '<div class="section">';
 
-  h += '<div style="text-align:center;margin-bottom:20px">';
-  h += `<div style="font-family:var(--font-mono);font-size:0.72rem;letter-spacing:0.14em;color:var(--text-mute)">PLAYER ${z2hCurrentBanner + 1} OF 5</div>`;
-  h += `<div style="font-family:var(--font-display);font-size:1.6rem;font-weight:700;color:var(--text);margin:4px 0">${esc(p.name)}</div>`;
-  h += '<div style="color:var(--text-dim);font-size:0.88rem">Choose up to 5 specs to seal away — those specs will not be rolled for you.</div>';
+  h += '<div style="display:flex;align-items:baseline;gap:14px;margin-bottom:12px">';
+  h += `<div style="font-family:var(--font-display);font-size:1.4rem;font-weight:700;color:var(--text)">${esc(p.name)}</div>`;
+  h += `<div style="font-family:var(--font-mono);font-size:0.72rem;letter-spacing:0.12em;color:var(--text-mute)">PLAYER ${z2hCurrentBanner + 1} OF 5 · BAN UP TO 5 SPECS</div>`;
   h += '</div>';
 
-  h += `<div style="font-family:var(--font-mono);font-size:0.78rem;letter-spacing:0.1em;color:var(--dps);margin-bottom:14px">${z2hCurrentBans.length} / 5 SPECS SEALED</div>`;
+  h += `<div style="font-family:var(--font-mono);font-size:0.78rem;letter-spacing:0.1em;color:var(--dps);margin-bottom:12px">${z2hCurrentBans.length} / 5 SPECS SEALED</div>`;
 
+  h += '<div class="z2h-class-grid">';
   let specIdx = 0;
   for (const [cls, specs] of Object.entries(CLASSES)) {
     const cc = CLASS_COLORS[cls] || '#cccccc';
-    h += '<div class="z2h-class-group">';
+    h += `<div class="z2h-class-group" style="border-color:${cc};background:${cc}10">`;
     h += `<div class="z2h-class-header" style="color:${cc}">${esc(cls)}</div>`;
     h += '<div class="z2h-spec-grid">';
     for (const { spec, role } of specs) {
       const isBanned = z2hCurrentBans.some(b => b.class === cls && b.spec === spec);
       const cap      = !isBanned && capped;
-      h += `<button class="z2h-spec-pill${isBanned ? ' banned' : ''}${cap ? ' ban-capped' : ''}" onclick="z2hToggleBan(${specIdx})">${ROLE_GLYPHS[role]} ${esc(spec)}</button>`;
+      const dot      = `<b style="color:${ROLE_COLORS[role]}">${ROLE_LABELS[role][0]}</b>`;
+      h += `<button class="z2h-spec-pill${isBanned ? ' banned' : ''}${cap ? ' ban-capped' : ''}" onclick="z2hToggleBan(${specIdx})">${dot} ${esc(spec)}</button>`;
       specIdx++;
     }
     h += '</div></div>';
   }
+  h += '</div>';
 
-  h += '<div style="display:flex;gap:12px;align-items:center;margin-top:24px">';
+  h += '<div style="display:flex;gap:12px;align-items:center;margin-top:16px">';
   const lockLabel = z2hCurrentBans.length === 0 ? 'Lock In (No Bans)' : `Lock In ${z2hCurrentBans.length} Ban${z2hCurrentBans.length !== 1 ? 's' : ''}`;
   h += `<button class="action-primary" onclick="z2hLockBans()">${lockLabel}</button>`;
   h += `<button class="skip-btn" onclick="resetZ2H()">← Start Over</button>`;
