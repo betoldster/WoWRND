@@ -3329,12 +3329,12 @@ function renderZ2HBanning() {
   const capped = z2hCurrentBans.length >= 5;
   let h = '<div class="section">';
 
-  h += '<div style="display:flex;align-items:baseline;gap:14px;margin-bottom:12px">';
+  h += '<div style="display:flex;align-items:baseline;gap:14px;margin-bottom:12px;justify-content:center">';
   h += `<div style="font-family:var(--font-display);font-size:1.4rem;font-weight:700;color:var(--text)">${esc(p.name)}</div>`;
   h += `<div style="font-family:var(--font-mono);font-size:0.72rem;letter-spacing:0.12em;color:var(--text-mute)">PLAYER ${z2hCurrentBanner + 1} OF 5 · BAN UP TO 5 SPECS</div>`;
   h += '</div>';
 
-  h += `<div style="font-family:var(--font-mono);font-size:0.78rem;letter-spacing:0.1em;color:var(--dps);margin-bottom:12px">${z2hCurrentBans.length} / 5 SPECS SEALED</div>`;
+  h += `<div style="font-family:var(--font-mono);font-size:0.78rem;letter-spacing:0.1em;color:var(--dps);margin-bottom:12px;text-align:center">${z2hCurrentBans.length} / 5 SPECS SEALED</div>`;
 
   h += '<div class="z2h-class-grid">';
   let specIdx = 0;
@@ -3354,7 +3354,7 @@ function renderZ2HBanning() {
   }
   h += '</div>';
 
-  h += '<div style="display:flex;gap:12px;align-items:center;margin-top:16px">';
+  h += '<div style="display:flex;gap:12px;align-items:center;margin-top:16px;justify-content:center">';
   const lockLabel = z2hCurrentBans.length === 0 ? 'Lock In (No Bans)' : `Lock In ${z2hCurrentBans.length} Ban${z2hCurrentBans.length !== 1 ? 's' : ''}`;
   h += `<button class="action-primary" onclick="z2hLockBans()">${lockLabel}</button>`;
   h += `<button class="skip-btn" onclick="resetZ2H()">← Start Over</button>`;
