@@ -1346,6 +1346,56 @@ footer {
 .active-count-warn { animation: flash-warn 0.5s ease; }
 
 /* mobile: chronicle body stacks */
+
+/* ---- ZERO 2 HERO ---- */
+@keyframes z2h-card-settle {
+  0%   { transform: scale(1.07); }
+  60%  { transform: scale(0.97); }
+  100% { transform: scale(1); }
+}
+.z2h-card--settling { animation: z2h-card-settle 0.5s ease; }
+
+.z2h-player-pick { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 10px; }
+.z2h-player-chip {
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg-surface);
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: var(--text);
+  transition: border-color 0.15s, background 0.15s, color 0.15s;
+}
+.z2h-player-chip.selected { border-color: var(--keystone); background: rgba(168,107,255,0.1); color: var(--keystone); }
+.z2h-player-chip.pick-capped:not(.selected) { opacity: 0.3; cursor: not-allowed; }
+
+.z2h-spec-grid { display: flex; flex-wrap: wrap; gap: 6px; }
+.z2h-spec-pill {
+  padding: 5px 11px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  background: var(--bg-surface);
+  cursor: pointer;
+  font-size: 0.82rem;
+  color: var(--text-dim);
+  transition: border-color 0.15s, opacity 0.15s, color 0.15s;
+  user-select: none;
+}
+.z2h-spec-pill:hover:not(.ban-capped) { border-color: var(--border-bright); color: var(--text); }
+.z2h-spec-pill.banned { border-color: var(--dps); color: var(--dps); opacity: 0.55; text-decoration: line-through; }
+.z2h-spec-pill.ban-capped:not(.banned) { opacity: 0.28; cursor: not-allowed; }
+
+.z2h-class-group { margin-bottom: 14px; }
+.z2h-class-header { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.1em; margin-bottom: 6px; text-transform: uppercase; }
+
+.z2h-oath-list { list-style: none; padding: 0; margin: 0 0 28px; display: flex; flex-direction: column; gap: 8px; }
+.z2h-oath-item {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 16px; border-radius: 8px;
+  background: var(--bg-surface); border: 1px solid var(--border);
+}
+.z2h-oath-name { font-weight: 700; font-size: 1rem; color: var(--text); }
+.z2h-oath-bans { font-size: 0.8rem; font-family: var(--font-mono); color: var(--text-mute); letter-spacing: 0.06em; }
 </style>
 </head>
 <body>
@@ -1386,6 +1436,7 @@ footer {
       <button class="tab active" data-view="randomize"><span class="tab-glyph">◇</span> Randomize</button>
       <button class="tab"        data-view="setup"><span class="tab-glyph">◈</span> Roster</button>
       <button class="tab"        data-view="history"><span class="tab-glyph">◆</span> Chronicle</button>
+      <button class="tab"        data-view="z2h"><span class="tab-glyph">⚔</span> Zero 2 Hero</button>
     </nav>
     <div class="header-right">
       <button class="mute-btn" id="mute-btn" title="Toggle sound">🔊</button>
@@ -1709,6 +1760,16 @@ let removeConfirmTimer    = null;
 let deleteRollConfirmId   = null;
 let deleteRollTimer       = null;
 
+// ---- Zero 2 Hero ----
+let z2hPhase         = 'idle';
+let z2hSelected      = new Set();
+let z2hPlayers       = [];
+let z2hCurrentBanner = 0;
+let z2hCurrentBans   = [];
+let z2hAssignments   = [];
+let z2hIsAnimating   = false;
+let z2hSkipReveal    = false;
+
 // ==================== API ====================
 
 async function apiRequest(method, body) {
@@ -1864,6 +1925,7 @@ function render() {
   if (activeView === 'randomize') renderRandomize();
   else if (activeView === 'setup')    renderSetup();
   else if (activeView === 'history')  renderHistory();
+  else if (activeView === 'z2h')      renderZ2H();
   updateSeasonPill();
 }
 
@@ -3160,6 +3222,315 @@ async function boot() {
       }
     }
   }
+}
+
+// ==================== ZERO 2 HERO ====================
+
+function z2hAllSpecs() {
+  const list = [];
+  for (const [cls, specs] of Object.entries(CLASSES)) {
+    for (const { spec, role } of specs) {
+      list.push({ class: cls, spec, role });
+    }
+  }
+  return list;
+}
+
+function z2hTogglePlayer(id) {
+  if (z2hSelected.has(id)) {
+    z2hSelected.delete(id);
+  } else if (z2hSelected.size < 5) {
+    z2hSelected.add(id);
+  }
+  render();
+}
+
+function z2hToggleBan(idx) {
+  const s = z2hAllSpecs()[idx];
+  if (!s) return;
+  const existing = z2hCurrentBans.findIndex(b => b.class === s.class && b.spec === s.spec);
+  if (existing >= 0) {
+    z2hCurrentBans.splice(existing, 1);
+  } else if (z2hCurrentBans.length < 5) {
+    z2hCurrentBans.push({ class: s.class, spec: s.spec });
+  }
+  render();
+}
+
+function z2hLockBans() {
+  z2hPlayers[z2hCurrentBanner].bans = [...z2hCurrentBans];
+  z2hCurrentBans = [];
+  z2hCurrentBanner++;
+  if (z2hCurrentBanner === 5) z2hPhase = 'ready';
+  render();
+}
+
+function z2hBeginOath() {
+  z2hPlayers = appState.players
+    .filter(p => z2hSelected.has(p.id))
+    .map(p => ({ id: p.id, name: p.name, bans: [] }));
+  z2hCurrentBanner = 0;
+  z2hCurrentBans = [];
+  z2hPhase = 'banning';
+  render();
+}
+
+function resetZ2H() {
+  z2hPhase = 'idle';
+  z2hSelected = new Set();
+  z2hPlayers = [];
+  z2hCurrentBanner = 0;
+  z2hCurrentBans = [];
+  z2hAssignments = [];
+  z2hIsAnimating = false;
+  z2hSkipReveal = false;
+  render();
+}
+
+function renderZ2H() {
+  if      (z2hPhase === 'idle')                                 renderZ2HIdle();
+  else if (z2hPhase === 'banning')                              renderZ2HBanning();
+  else if (z2hPhase === 'ready')                                renderZ2HReady();
+  else if (z2hPhase === 'revealing' || z2hPhase === 'done')     renderZ2HReveal();
+}
+
+function renderZ2HIdle() {
+  const main    = document.getElementById('main');
+  const players = appState.players;
+  const capped  = z2hSelected.size >= 5;
+  let h = '<div class="section">';
+  h += '<div style="text-align:center;margin-bottom:32px">';
+  h += '<div style="font-family:var(--font-display);font-size:2.2rem;font-weight:700;letter-spacing:0.12em;color:var(--keystone);margin-bottom:8px">ZERO 2 HERO</div>';
+  h += '<div style="color:var(--text-dim);font-size:0.95rem">Five adventurers. New characters. Level 90. 3000 Rio.</div>';
+  h += '<div style="color:var(--text-mute);font-size:0.82rem;margin-top:6px;font-family:var(--font-mono)">Each player bans up to 5 specs · Fate assigns the rest</div>';
+  h += '</div>';
+
+  if (players.length < 5) {
+    h += '<div style="text-align:center;color:var(--text-mute);font-family:var(--font-mono);font-size:0.88rem">Add at least 5 players to the Roster first.</div>';
+  } else {
+    h += '<div style="font-family:var(--font-mono);font-size:0.75rem;letter-spacing:0.1em;color:var(--text-mute);margin-bottom:10px">SELECT 5 ADVENTURERS</div>';
+    h += '<div class="z2h-player-pick">';
+    for (const p of players) {
+      const sel = z2hSelected.has(p.id);
+      const cap = !sel && capped;
+      h += `<button class="z2h-player-chip${sel ? ' selected' : ''}${cap ? ' pick-capped' : ''}" onclick="z2hTogglePlayer('${p.id}')">${esc(p.name)}</button>`;
+    }
+    h += '</div>';
+    h += `<div style="font-family:var(--font-mono);font-size:0.78rem;color:var(--text-mute);margin-bottom:24px">${z2hSelected.size} / 5 chosen</div>`;
+    h += `<div class="center"><button class="action-primary"${z2hSelected.size < 5 ? ' disabled' : ''} onclick="z2hBeginOath()">⚔ BEGIN THE OATH ⚔</button></div>`;
+  }
+  h += '</div>';
+  main.innerHTML = h;
+}
+
+function renderZ2HBanning() {
+  const main   = document.getElementById('main');
+  const p      = z2hPlayers[z2hCurrentBanner];
+  const capped = z2hCurrentBans.length >= 5;
+  let h = '<div class="section">';
+
+  h += '<div style="text-align:center;margin-bottom:20px">';
+  h += `<div style="font-family:var(--font-mono);font-size:0.72rem;letter-spacing:0.14em;color:var(--text-mute)">PLAYER ${z2hCurrentBanner + 1} OF 5</div>`;
+  h += `<div style="font-family:var(--font-display);font-size:1.6rem;font-weight:700;color:var(--text);margin:4px 0">${esc(p.name)}</div>`;
+  h += '<div style="color:var(--text-dim);font-size:0.88rem">Choose up to 5 specs to seal away — those specs will not be rolled for you.</div>';
+  h += '</div>';
+
+  h += `<div style="font-family:var(--font-mono);font-size:0.78rem;letter-spacing:0.1em;color:var(--dps);margin-bottom:14px">${z2hCurrentBans.length} / 5 SPECS SEALED</div>`;
+
+  let specIdx = 0;
+  for (const [cls, specs] of Object.entries(CLASSES)) {
+    const cc = CLASS_COLORS[cls] || '#cccccc';
+    h += '<div class="z2h-class-group">';
+    h += `<div class="z2h-class-header" style="color:${cc}">${esc(cls)}</div>`;
+    h += '<div class="z2h-spec-grid">';
+    for (const { spec, role } of specs) {
+      const isBanned = z2hCurrentBans.some(b => b.class === cls && b.spec === spec);
+      const cap      = !isBanned && capped;
+      h += `<button class="z2h-spec-pill${isBanned ? ' banned' : ''}${cap ? ' ban-capped' : ''}" onclick="z2hToggleBan(${specIdx})">${ROLE_GLYPHS[role]} ${esc(spec)}</button>`;
+      specIdx++;
+    }
+    h += '</div></div>';
+  }
+
+  h += '<div style="display:flex;gap:12px;align-items:center;margin-top:24px">';
+  const lockLabel = z2hCurrentBans.length === 0 ? 'Lock In (No Bans)' : `Lock In ${z2hCurrentBans.length} Ban${z2hCurrentBans.length !== 1 ? 's' : ''}`;
+  h += `<button class="action-primary" onclick="z2hLockBans()">${lockLabel}</button>`;
+  h += `<button class="skip-btn" onclick="resetZ2H()">← Start Over</button>`;
+  h += '</div>';
+
+  h += '</div>';
+  main.innerHTML = h;
+}
+
+function renderZ2HReady() {
+  const main = document.getElementById('main');
+  let h = '<div class="section">';
+  h += '<div style="text-align:center;margin-bottom:28px">';
+  h += '<div style="font-family:var(--font-display);font-size:1.5rem;font-weight:700;letter-spacing:0.1em;color:var(--keystone)">THE FIVE HAVE SWORN THEIR OATHS</div>';
+  h += '<div style="color:var(--text-mute);font-size:0.82rem;font-family:var(--font-mono);margin-top:6px">All bans are locked in. Destiny awaits.</div>';
+  h += '</div>';
+
+  h += '<ul class="z2h-oath-list">';
+  for (const p of z2hPlayers) {
+    const banText = p.bans.length === 0 ? 'No specs sealed' : `${p.bans.length} spec${p.bans.length !== 1 ? 's' : ''} sealed away`;
+    h += `<li class="z2h-oath-item"><span class="z2h-oath-name">${esc(p.name)}</span><span class="z2h-oath-bans">${banText}</span></li>`;
+  }
+  h += '</ul>';
+
+  h += '<div style="display:flex;gap:12px;align-items:center;justify-content:center">';
+  h += '<button class="action-primary" onclick="handleZ2HRoll()">⚔ ROLL DESTINY ⚔</button>';
+  h += '<button class="skip-btn" onclick="resetZ2H()">← Start Over</button>';
+  h += '</div>';
+
+  h += '</div>';
+  main.innerHTML = h;
+}
+
+function renderZ2HReveal() {
+  const isDone = z2hPhase === 'done';
+  const main   = document.getElementById('main');
+  let h = '<section class="section">';
+
+  h += '<div class="slot-reveal-header"><span></span>';
+  h += `<button class="skip-btn" id="z2h-skip-btn"${isDone ? ' disabled style="opacity:0.35;cursor:default"' : ''} onclick="z2hSkipReveal=true">SKIP ▸▸</button>`;
+  h += '</div>';
+
+  h += '<div class="slot-cards" role="status" aria-live="polite">';
+  for (let i = 0; i < 5; i++) {
+    const a  = z2hAssignments[i];
+    const cc = classColor(a.class);
+    h += `<div class="slot-card" id="z2h-card-${i}"${isDone ? ` style="border-color:${cc};box-shadow:0 0 24px ${cc}40"` : ''}>`;
+    h += `<div class="slot-card-role">${roleBadge(a.role)}</div>`;
+    if (isDone) {
+      h += `<div class="slot-portrait slot-portrait--settled" id="z2h-portrait-${i}" style="background:radial-gradient(ellipse at center,${cc}44,${cc}11)">`;
+      h += playerAvatar(70, a.playerName, a.class);
+      h += '</div>';
+      h += `<div class="slot-name-area" id="z2h-name-${i}"><span style="color:${cc}">${esc(a.playerName)}</span></div>`;
+      h += `<div class="slot-spec-line" id="z2h-detail-${i}">${esc(a.spec)} ${esc(a.class)}</div>`;
+    } else {
+      h += `<div class="slot-portrait" id="z2h-portrait-${i}"><span class="slot-cycle-name" id="z2h-player-${i}">???</span></div>`;
+      h += `<div class="slot-name-area" id="z2h-name-${i}"><span class="slot-dots">· · ·</span></div>`;
+      h += `<div class="slot-spec-line" id="z2h-detail-${i}"></div>`;
+    }
+    h += '</div>';
+  }
+  h += '</div>';
+
+  h += `<div class="progress-line" id="z2h-progress">${isDone ? 'ALL PATHS ARE SET · YOUR LEGEND BEGINS' : 'THE FATES STIR...'}</div>`;
+  h += '<div class="center" style="margin-top:32px">';
+  h += `<button class="action-primary" id="z2h-done-btn"${isDone ? '' : ' disabled'} onclick="resetZ2H()">⚔ ROLL AGAIN ⚔</button>`;
+  h += '</div>';
+
+  h += '</section>';
+  main.innerHTML = h;
+}
+
+function computeZ2HAssignments() {
+  const allSpecs = z2hAllSpecs();
+  const players  = z2hPlayers.map((p) => {
+    let eligible = allSpecs.filter(s =>
+      !p.bans.some(b => b.class === s.class && b.spec === s.spec)
+    );
+    if (eligible.length === 0) eligible = allSpecs;
+    return { name: p.name, eligible };
+  });
+
+  const roles        = shuffle(['TANK', 'HEAL', 'DPS', 'DPS', 'DPS']);
+  const shuffledIdxs = shuffle([0, 1, 2, 3, 4]);
+  const usedPlayers  = new Set();
+  const assignments  = [];
+
+  for (const role of roles) {
+    let candidates = shuffledIdxs.filter(
+      i => !usedPlayers.has(i) && players[i].eligible.some(s => s.role === role)
+    );
+    if (candidates.length === 0) candidates = shuffledIdxs.filter(i => !usedPlayers.has(i));
+    const chosen = candidates[0];
+    usedPlayers.add(chosen);
+    const player = players[chosen];
+    let pool = player.eligible.filter(s => s.role === role);
+    if (pool.length === 0) pool = allSpecs.filter(s => s.role === role);
+    const picked = pick(pool);
+    assignments.push({ playerName: player.name, role, class: picked.class, spec: picked.spec });
+  }
+
+  const order = { TANK: 0, HEAL: 1, DPS: 2 };
+  assignments.sort((a, b) => order[a.role] - order[b.role]);
+  return assignments;
+}
+
+async function handleZ2HRoll() {
+  if (z2hIsAnimating) return;
+  z2hAssignments = computeZ2HAssignments();
+  z2hPhase = 'revealing';
+  render();
+  await runZ2HRevealAnimation(z2hAssignments);
+}
+
+async function runZ2HRevealAnimation(assignments) {
+  z2hIsAnimating = true;
+  z2hSkipReveal  = false;
+  const names = z2hPlayers.map(p => p.name);
+
+  await sleep(300);
+
+  for (let i = 0; i < assignments.length; i++) {
+    const a       = assignments[i];
+    const cycleEl = document.getElementById(`z2h-player-${i}`);
+    if (!cycleEl) continue;
+
+    if (!z2hSkipReveal) {
+      for (let c = 0; c < 30; c++) {
+        cycleEl.textContent = pick(names);
+        playClick();
+        await sleep(120);
+        if (z2hSkipReveal) break;
+      }
+    }
+
+    const cc         = classColor(a.class);
+    const portraitEl = document.getElementById(`z2h-portrait-${i}`);
+    const nameEl     = document.getElementById(`z2h-name-${i}`);
+    const cardEl     = document.getElementById(`z2h-card-${i}`);
+    const detailEl   = document.getElementById(`z2h-detail-${i}`);
+
+    if (portraitEl) {
+      portraitEl.classList.add('slot-portrait--settled');
+      portraitEl.style.background = `radial-gradient(ellipse at center, ${cc}44, ${cc}11)`;
+      portraitEl.innerHTML = playerAvatar(70, a.playerName, a.class);
+    }
+    if (nameEl)   nameEl.innerHTML     = `<span style="color:${cc}">${esc(a.playerName)}</span>`;
+    if (detailEl) detailEl.textContent = `${a.spec} ${a.class}`;
+    if (cardEl) {
+      cardEl.classList.add('z2h-card--settling');
+      cardEl.style.borderColor = cc;
+      cardEl.style.boxShadow   = `0 0 24px ${cc}40`;
+    }
+
+    const prog    = document.getElementById('z2h-progress');
+    const settled = i + 1;
+    if (prog) {
+      prog.textContent = settled < 5
+        ? `${settled} OF 5 DESTINIES SEALED · ${5 - settled} STILL UNWRITTEN`
+        : 'ALL PATHS ARE SET · YOUR LEGEND BEGINS';
+    }
+
+    if (!z2hSkipReveal) {
+      playSettle();
+      await sleep(800);
+    }
+  }
+
+  if (!z2hSkipReveal) await sleep(600);
+  playFanfare();
+
+  z2hIsAnimating = false;
+  z2hPhase       = 'done';
+
+  const skipBtn = document.getElementById('z2h-skip-btn');
+  const doneBtn = document.getElementById('z2h-done-btn');
+  if (skipBtn) { skipBtn.disabled = true; skipBtn.style.opacity = '0.35'; skipBtn.style.cursor = 'default'; }
+  if (doneBtn) doneBtn.disabled = false;
 }
 
 boot();
