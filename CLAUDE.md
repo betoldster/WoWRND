@@ -4,7 +4,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Purpose
 
-WoWRND is a Mythic+ randomizer web app for a World of Warcraft group. It randomly assigns each active player a role (Tank/Heal/DPS), class, and spec, then rolls a dungeon from the season pool. Up to 15 players can be on the roster; exactly 5 are selected per roll. State is persisted server-side so all group members see the same result.
+WoWRND is a web app for a World of Warcraft group with two game modes:
+
+- **Mythic+ Randomizer** — randomly assigns each active player a role (Tank/Heal/DPS), class, and spec, then rolls a dungeon from the season pool. Up to 15 players on the roster; exactly 5 selected per roll. State is persisted server-side so all group members see the same result.
+- **Zero 2 Hero** — draft mode for new characters. 5 players are selected from the roster; each bans up to 5 specs from their personal pool; a dramatic reveal assigns 1 Tank, 1 Heal, and 3 DPS. Fully client-side, no server state.
 
 GitHub: https://github.com/betoldster/WoWRND  
 Deployed via Netlify CI on push to `main`.
@@ -32,6 +35,15 @@ Deployment is fully automated: push to `main` and Netlify CI deploys. No build c
 ### Frontend (`index.html`)
 
 **Rendering pattern**: Each view renders itself by building an HTML string and assigning it to `main.innerHTML`. There is no virtual DOM or framework. Event handlers are either inline `onclick` attributes or re-attached after each `render()` call. When editing the render functions, be aware that any DOM state (checked checkboxes, focus) is destroyed on re-render.
+
+**Zero 2 Hero phase state machine**: `z2hPhase` drives the Zero 2 Hero tab:
+- `idle` — player selection (pick 5 from roster)
+- `banning` — sequential per player: spec ban grid (up to 5 personal bans). `z2hCurrentBanner` (0–4) tracks who's up. `z2hCurrentBans` holds in-progress selections. After the 5th player locks in, auto-advances to `ready`.
+- `ready` — summary of all 5 players and their ban counts; "ROLL DESTINY" button
+- `revealing` — dramatic reveal animation (30 name cycles, 800 ms settle per card). `runZ2HRevealAnimation()` does **not** call `render()` at the end — it DOM-swaps the skip/done buttons in place and sets `z2hPhase = 'done'`.
+- `done` — settled assignment cards; "Roll Again" resets to `idle`
+
+`z2hPlayers` holds `[{id, name, bans:[{class,spec}]}]` for the selected 5. `z2hAssignments` holds the final `[{playerName,role,class,spec}]`. `resetZ2H()` clears all z2h state. Bans are personal — they only remove specs from that player's own roll pool; `computeZ2HAssignments()` always returns a valid result (falls back to ignoring bans if a role pool is somehow exhausted). Results are sorted Tank → Heal → DPS × 3.
 
 **Randomize phase state machine**: `rPhase` drives the entire Randomize view:
 - `idle` — ritual gathering (class pills, ritual slots, cast button)
@@ -118,4 +130,5 @@ GROUP_PASSWORD=your_local_dev_password
 - **`hidden` attribute**: elements with explicit `display` CSS need `[hidden] { display: none !important }` or `element.hidden = true` has no visual effect.
 - **`@netlify/blobs` storage**: raw string round-trip is used (`store.set(key, JSON.stringify(obj))`) rather than the `setJSON` convenience method, for reliability across package versions.
 - **Dungeon art img sizing**: the `<img>` inside `.dungeon-art` is `position: absolute; inset: 0` so its intrinsic dimensions don't drive the container height. The container height is set by the flex/grid layout. `object-fit: cover` crops the image to fill.
-- **Reveal animation pause**: `runRevealAnimation()` does NOT call `render()` or advance `rPhase` at the end. It DOM-swaps the skip button visibility and enables the advance button in place. Any `render()` call at the end would destroy the settled card DOM state. `advanceToKeystones()` is the only place that sets `rPhase = 'key-entry'` and calls `render()`.
+- **Reveal animation pause**: `runRevealAnimation()` does NOT call `render()` or advance `rPhase` at the end. It DOM-swaps the skip button visibility and enables the advance button in place. Any `render()` call at the end would destroy the settled card DOM state. `advanceToKeystones()` is the only place that sets `rPhase = 'key-entry'` and calls `render()`. The same pattern applies to `runZ2HRevealAnimation()` — it sets `z2hPhase = 'done'` and DOM-swaps the buttons without calling `render()`.
+- **Zero 2 Hero is client-side only**: `z2h*` state variables are never persisted to the server. `netlify/functions/state.js` is unaware of Z2H. Do not add Z2H data to `appState` or the PUT payload.
