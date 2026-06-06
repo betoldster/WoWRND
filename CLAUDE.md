@@ -40,10 +40,12 @@ Deployment is fully automated: push to `main` and Netlify CI deploys. No build c
 - `idle` — player selection (pick 5 from roster)
 - `banning` — sequential per player: spec ban grid (up to 5 personal bans). `z2hCurrentBanner` (0–4) tracks who's up. `z2hCurrentBans` holds in-progress selections. After the 5th player locks in, auto-advances to `ready`.
 - `ready` — summary of all 5 players and their ban counts; "ROLL DESTINY" button
-- `revealing` — dramatic reveal animation (30 name cycles, 800 ms settle per card). `runZ2HRevealAnimation()` does **not** call `render()` at the end — it DOM-swaps the skip/done buttons in place and sets `z2hPhase = 'done'`.
-- `done` — settled assignment cards; "Roll Again" resets to `idle`
+- `revealing` — dramatic reveal animation (30 name cycles, 800 ms settle per card). `runZ2HRevealAnimation()` calls `render()` at the end (after setting `z2hPhase = 'done'`) so the done screen renders correctly with reroll buttons.
+- `done` — settled assignment cards with per-player reroll buttons; "Roll Again" resets to `idle`
 
-`z2hPlayers` holds `[{id, name, bans:[{class,spec}]}]` for the selected 5. `z2hAssignments` holds the final `[{playerName,role,class,spec}]`. `resetZ2H()` clears all z2h state. Bans are personal — they only remove specs from that player's own roll pool; `computeZ2HAssignments()` always returns a valid result (falls back to ignoring bans if a role pool is somehow exhausted). Results are sorted Tank → Heal → DPS × 3.
+`z2hPlayers` holds `[{id, name, bans:[{class,spec}]}]` for the selected 5. `z2hAssignments` holds the final `[{playerName,role,class,spec}]`. `z2hRerolls` is a plain object keyed by player name; the value is the original assignment before a reroll. `resetZ2H()` clears all z2h state. Bans are personal — they only remove specs from that player's own roll pool; `computeZ2HAssignments()` always returns a valid result (falls back to ignoring bans if a role pool is somehow exhausted). Results are sorted Tank → Heal → DPS × 3.
+
+**Reroll** (`z2hRerollPlayer(idx)`): each player gets one reroll on the done screen. It picks a new spec within the same role (bans respected, never the same spec as the original). Role is preserved to keep the 1T/1H/3DPS comp. Once used, the button is replaced with a muted "was: spec class" line in the original class color.
 
 **Randomize phase state machine**: `rPhase` drives the entire Randomize view:
 - `idle` — ritual gathering (class pills, ritual slots, cast button)
@@ -130,5 +132,5 @@ GROUP_PASSWORD=your_local_dev_password
 - **`hidden` attribute**: elements with explicit `display` CSS need `[hidden] { display: none !important }` or `element.hidden = true` has no visual effect.
 - **`@netlify/blobs` storage**: raw string round-trip is used (`store.set(key, JSON.stringify(obj))`) rather than the `setJSON` convenience method, for reliability across package versions.
 - **Dungeon art img sizing**: the `<img>` inside `.dungeon-art` is `position: absolute; inset: 0` so its intrinsic dimensions don't drive the container height. The container height is set by the flex/grid layout. `object-fit: cover` crops the image to fill.
-- **Reveal animation pause**: `runRevealAnimation()` does NOT call `render()` or advance `rPhase` at the end. It DOM-swaps the skip button visibility and enables the advance button in place. Any `render()` call at the end would destroy the settled card DOM state. `advanceToKeystones()` is the only place that sets `rPhase = 'key-entry'` and calls `render()`. The same pattern applies to `runZ2HRevealAnimation()` — it sets `z2hPhase = 'done'` and DOM-swaps the buttons without calling `render()`.
+- **Reveal animation pause**: `runRevealAnimation()` does NOT call `render()` or advance `rPhase` at the end. It DOM-swaps the skip button visibility and enables the advance button in place. Any `render()` call at the end would destroy the settled card DOM state. `advanceToKeystones()` is the only place that sets `rPhase = 'key-entry'` and calls `render()`. `runZ2HRevealAnimation()` is different — it sets `z2hPhase = 'done'` and then calls `render()`, which is safe because `isDone = true` causes `renderZ2HReveal()` to draw all cards from `z2hAssignments` in their settled state.
 - **Zero 2 Hero is client-side only**: `z2h*` state variables are never persisted to the server. `netlify/functions/state.js` is unaware of Z2H. Do not add Z2H data to `appState` or the PUT payload.

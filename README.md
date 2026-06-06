@@ -23,6 +23,13 @@ A private group tool for World of Warcraft Mythic+ teams. Randomly assigns roles
 - **Party composition** stat tiles: interrupts, LUST (class color), BREZ (class colors), melee/ranged split
 - Copy-to-Discord button with formatted result
 
+### ⚔️ Zero 2 Hero
+- 5 players are selected from the roster for a new-character draft
+- Each player privately **bans up to 5 specs** from their personal pool before the roll
+- A dramatic animated reveal assigns **1 Tank, 1 Healer, and 3 DPS** — bans are respected; the comp is always valid
+- Each player gets **one reroll** on the done screen — picks a new spec within the same role, still honoring their bans; original result shown as a muted "was: spec class" line
+- Fully client-side — no server state involved
+
 ### ⚙️ Roster
 - Add up to 15 players with custom names and class selections
 - Each player can have multiple classes configured (e.g. someone who plays both Druid and Warrior)
