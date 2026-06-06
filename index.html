@@ -3579,11 +3579,7 @@ async function runZ2HRevealAnimation(assignments) {
 
   z2hIsAnimating = false;
   z2hPhase       = 'done';
-
-  const skipBtn = document.getElementById('z2h-skip-btn');
-  const doneBtn = document.getElementById('z2h-done-btn');
-  if (skipBtn) { skipBtn.disabled = true; skipBtn.style.opacity = '0.35'; skipBtn.style.cursor = 'default'; }
-  if (doneBtn) doneBtn.disabled = false;
+  render();
 }
 
 boot();
