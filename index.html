@@ -1396,6 +1396,27 @@ footer {
 }
 .z2h-oath-name { font-weight: 700; font-size: 1rem; color: var(--text); }
 .z2h-oath-bans { font-size: 0.8rem; font-family: var(--font-mono); color: var(--text-mute); letter-spacing: 0.06em; }
+.z2h-reroll-btn {
+  font-size: 0.68rem;
+  font-family: var(--font-mono);
+  letter-spacing: 0.1em;
+  padding: 4px 10px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-mute);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+  margin-top: -4px;
+}
+.z2h-reroll-btn:hover { border-color: var(--keystone); color: var(--keystone); }
+.z2h-original-line {
+  font-size: 0.68rem;
+  font-family: var(--font-mono);
+  text-align: center;
+  margin-top: -4px;
+  opacity: 0.55;
+}
 </style>
 </head>
 <body>
@@ -1769,6 +1790,7 @@ let z2hCurrentBans   = [];
 let z2hAssignments   = [];
 let z2hIsAnimating   = false;
 let z2hSkipReveal    = false;
+let z2hRerolls       = {};
 
 // ==================== API ====================
 
@@ -3284,6 +3306,7 @@ function resetZ2H() {
   z2hAssignments = [];
   z2hIsAnimating = false;
   z2hSkipReveal = false;
+  z2hRerolls = {};
   render();
 }
 
@@ -3410,6 +3433,13 @@ function renderZ2HReveal() {
       h += '</div>';
       h += `<div class="slot-name-area" id="z2h-name-${i}"><span style="color:${cc}">${esc(a.playerName)}</span></div>`;
       h += `<div class="slot-spec-line" id="z2h-detail-${i}">${esc(a.spec)} ${esc(a.class)}</div>`;
+      if (z2hRerolls.hasOwnProperty(a.playerName)) {
+        const orig = z2hRerolls[a.playerName];
+        const origCc = classColor(orig.class);
+        h += `<div class="z2h-original-line" style="color:${origCc}">was: ${esc(orig.spec)} ${esc(orig.class)}</div>`;
+      } else {
+        h += `<button class="z2h-reroll-btn" onclick="z2hRerollPlayer(${i})">↺ REROLL</button>`;
+      }
     } else {
       h += `<div class="slot-portrait" id="z2h-portrait-${i}"><span class="slot-cycle-name" id="z2h-player-${i}">???</span></div>`;
       h += `<div class="slot-name-area" id="z2h-name-${i}"><span class="slot-dots">· · ·</span></div>`;
@@ -3460,6 +3490,26 @@ function computeZ2HAssignments() {
   const order = { TANK: 0, HEAL: 1, DPS: 2 };
   assignments.sort((a, b) => order[a.role] - order[b.role]);
   return assignments;
+}
+
+function z2hRerollPlayer(idx) {
+  const a = z2hAssignments[idx];
+  if (!a || z2hRerolls.hasOwnProperty(a.playerName)) return;
+  const original = { ...a };
+  z2hRerolls[a.playerName] = original;
+  const playerData = z2hPlayers.find(p => p.name === a.playerName);
+  const bans = playerData ? playerData.bans : [];
+  const allSpecs = z2hAllSpecs();
+  let pool = allSpecs.filter(s =>
+    s.role === original.role &&
+    !bans.some(b => b.class === s.class && b.spec === s.spec) &&
+    !(s.class === original.class && s.spec === original.spec)
+  );
+  if (pool.length === 0) pool = allSpecs.filter(s => s.role === original.role && !(s.class === original.class && s.spec === original.spec));
+  if (pool.length === 0) pool = allSpecs.filter(s => s.role === original.role);
+  const picked = pick(pool);
+  z2hAssignments[idx] = { playerName: original.playerName, role: original.role, class: picked.class, spec: picked.spec };
+  render();
 }
 
 async function handleZ2HRoll() {
